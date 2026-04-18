@@ -5,6 +5,7 @@ const cors = require('cors');
 
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Product = require('./models/Product'); // Your MongoDB schema
+const User = require('./models/User');
 
 const app = express();
 
@@ -43,6 +44,8 @@ app.post('/api/chat', async (req, res) => {
       `- ${item.name}: $${item.price} (${item.stockQuantity} in stock)`
     ).join('\n');
 
+
+
     // 2. AUGMENTATION: Build the strict System Instruction
     const systemInstruction = `
       You are SmartChat, the automated customer support agent for our tech store. 
@@ -77,6 +80,129 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+  // GET route for the Admin Dashboard to see all inventory
+app.get('/api/inventory', async (req, res) => {
+  try {
+    // Fetch all products from MongoDB
+    const inventory = await Product.find({});
+    // Send them back to the frontend as a clean JSON array
+    res.json(inventory);
+  } catch (error) {
+    console.error("Admin API Error:", error);
+    res.status(500).json({ error: "Failed to load inventory" });
+  }
+});
+
+
+
+// AUTHENTICATION ROUTES
+
+// 1. Register a New User
+app.post('/api/register', async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+
+    // Check if the username or email is already in the database
+    const existingUser = await User.findOne({ 
+      $or: [{ username: username }, { email: email }] 
+    });
+    
+    if (existingUser) {
+      return res.status(400).json({ error: "Username or Email already taken!" });
+    }
+
+    // Auto-assign 'admin' role if the username is exactly 'admin'
+    const role = username.toLowerCase() === 'admin' ? 'admin' : 'customer';
+    
+    // Create the new user object
+    const newUser = new User({
+      username: username,
+      email: email,
+      password: password, // Note: In a real app we'd use bcrypt to scramble this!
+      role: role
+    });
+
+    // Save to MongoDB
+    await newUser.save();
+    
+    // Send success message and safe user data back to the frontend
+    res.json({ 
+      message: "Registration successful", 
+      user: { username: newUser.username, role: newUser.role } 
+    });
+
+  } catch (error) {
+    console.error("Registration Error:", error);
+    res.status(500).json({ error: "Failed to register user." });
+  }
+});
+
+// 2. Login an Existing User
+app.post('/api/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    // Search MongoDB for this exact username
+    const user = await User.findOne({ username: username });
+
+    // If the user doesn't exist, or the password doesn't match...
+    if (!user || user.password !== password) {
+      return res.status(401).json({ error: "Invalid username or password!" });
+    }
+
+    // Success! Send safe user data back
+    res.json({ 
+      message: "Login successful", 
+      user: { username: user.username, role: user.role } 
+    });
+
+  } catch (error) {
+    console.error("Login Error:", error);
+    res.status(500).json({ error: "Failed to login." });
+  }
+});
+
+
+
+// ==========================================
+// ADMIN INVENTORY ROUTES
+// ==========================================
+
+// 1. Add a Brand New Product
+app.post('/api/products', async (req, res) => {
+  try {
+    const { name, price, stockQuantity } = req.body;
+    
+    // Create the new product in MongoDB
+    const newProduct = new Product({
+      name: name,
+      price: Number(price),
+      stockQuantity: Number(stockQuantity),
+      category: "General" // Default category
+    });
+
+    await newProduct.save();
+    res.json({ message: "Product added successfully", product: newProduct });
+  } catch (error) {
+    console.error("Add Product Error:", error);
+    res.status(500).json({ error: "Failed to add product." });
+  }
+});
+
+// 2. Update Existing Stock Quantity
+app.put('/api/products/:id', async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const { stockQuantity } = req.body;
+
+    // Find the product by its MongoDB ID and update the stock
+    await Product.findByIdAndUpdate(productId, { stockQuantity: Number(stockQuantity) });
+    res.json({ message: "Stock updated successfully!" });
+  } catch (error) {
+    console.error("Update Stock Error:", error);
+    res.status(500).json({ error: "Failed to update stock." });
+  }
+});
 
 
 
