@@ -9,6 +9,17 @@
 </head>
 <body>
 
+    <div class="animated-background">
+        <div class="gradient-sphere sphere-1"></div>
+        <div class="gradient-sphere sphere-2"></div>
+        <div class="gradient-sphere sphere-3"></div>
+        <div class="glow-center"></div>
+        <div class="grid-overlay"></div>
+        <div class="noise-overlay"></div>
+        <div id="particles-container" class="particles-container"></div>
+    </div>
+     <div id="welcome-banner" class="welcome-banner"></div>
+
     <section id="auth-view" class="view active">
         <div class="glass-panel auth-box">
             <h2 id="auth-title">Welcome Back</h2>
@@ -25,29 +36,39 @@
     </section>
 
  <section id="chat-view" class="view">
-        <nav class="top-nav">
-            <button onclick="switchView('admin-view')" class="nav-btn admin-link hidden" id="go-admin-btn">Admin Portal</button>
-            <button onclick="logout()" class="nav-btn">Logout</button>
-        </nav>
         
-        <div id="welcome-banner" class="welcome-banner"></div>
+        <div class="chat-layout" style="width: 100%;">
+            
+            <aside class="sidebar glass-panel">
+                <button class="new-chat-btn" onclick="startNewChat()">+ New Chat</button>
+                <div class="history-list" id="history-list">
+                    <p style="color: var(--text-muted); font-size: 0.9rem; padding: 10px;">Loading history...</p>
+                    </div>
+            </aside>
 
-        <main class="chat-container glass-panel">
-            <header class="chat-header">
-                <div class="avatar">🤖</div>
-                <div>
-                    <h2>SmartChat Assistant</h2>
-                    <p class="status">Ready to take your order</p>
+            <main class="chat-container glass-panel">
+                <header class="chat-header">
+                    <div class="avatar">🤖</div>
+                    <div style="flex: 1;">
+                        <h2>SmartChat Assistant</h2>
+                        <p class="status">Ready to take your order</p>
+                    </div>
+                    <button onclick="switchView('admin-view')" class="nav-btn admin-link hidden" id="go-admin-btn">Admin Portal</button>
+                    <button onclick="logout()" class="nav-btn" style="border-color: #ef4444; color: #ef4444;">Logout</button>
+                </header>
+                
+                
+                <div class="chat-box" id="chat-box"></div>
+                
+                <div class="input-area">
+                    <input type="text" id="user-input" placeholder="Ask about items or your orders..." autocomplete="off">
+                    <button id="send-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
                 </div>
-            </header>
-            <div class="chat-box" id="chat-box"></div>
-            <div class="input-area">
-                <input type="text" id="user-input" placeholder="Ask about items or your orders..." autocomplete="off">
-                <button id="send-btn">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-</button>
-            </div>
-        </main>
+            </main>
+            
+        </div>
     </section>
 
     <section id="admin-view" class="view">

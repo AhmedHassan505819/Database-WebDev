@@ -82,6 +82,13 @@ function logout() {
     document.getElementById('auth-username').value = '';
     document.getElementById('auth-password').value = '';
     document.getElementById('auth-email').value = '';
+    
+    // NEW: Force the admin button to hide when logging out
+    document.getElementById('go-admin-btn').classList.add('hidden');
+    
+    // Also clear the chat history so the next person has a fresh screen
+    document.getElementById('chat-box').innerHTML = ''; 
+    
     switchView('auth-view');
 }
 
@@ -242,7 +249,7 @@ function playWelcomeAnimation(username) {
     banner.style.opacity = '1'; // Ensure it's fully visible
     
     let i = 0;
-    const speed = 100; // Milliseconds per letter
+    const speed = 400; // Milliseconds per letter
 
     function typeWriter() {
         if (i < text.length) {
@@ -259,3 +266,77 @@ function playWelcomeAnimation(username) {
     
     typeWriter(); // Start typing!
 }
+
+
+
+// ==========================================
+// BACKGROUND PARTICLE & MOUSE EFFECTS
+// ==========================================
+const particlesContainer = document.getElementById('particles-container');
+
+// 1. Create floating background particles
+function initParticles() {
+    const particleCount = 50;
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        const size = Math.random() * 2 + 1;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particlesContainer.appendChild(particle);
+        animateParticle(particle);
+    }
+}
+
+function animateParticle(particle) {
+    const startX = Math.random() * 100;
+    const startY = Math.random() * 100;
+    particle.style.left = `${startX}%`;
+    particle.style.top = `${startY}%`;
+    particle.style.opacity = '0';
+    
+    const duration = Math.random() * 10 + 10;
+    const delay = Math.random() * 5;
+    
+    setTimeout(() => {
+        particle.style.transition = `all ${duration}s linear`;
+        particle.style.opacity = Math.random() * 0.3 + 0.1;
+        particle.style.left = `${startX + (Math.random() * 20 - 10)}%`;
+        particle.style.top = `${startY - Math.random() * 20}%`;
+        
+        setTimeout(() => { animateParticle(particle); }, duration * 1000);
+    }, delay * 1000);
+}
+
+initParticles();
+
+// 2. Mouse interaction: Trail and Sphere movement
+document.addEventListener('mousemove', (e) => {
+    // Create subtle trail particle
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    const size = Math.random() * 3 + 2;
+    particle.style.width = `${size}px`;
+    particle.style.height = `${size}px`;
+    particle.style.left = `${(e.clientX / window.innerWidth) * 100}%`;
+    particle.style.top = `${(e.clientY / window.innerHeight) * 100}%`;
+    particle.style.opacity = '0.4';
+    particlesContainer.appendChild(particle);
+    
+    setTimeout(() => {
+        particle.style.transition = 'all 1.5s ease-out';
+        particle.style.transform = `translate(${Math.random() * 40 - 20}px, ${Math.random() * 40 - 20}px)`;
+        particle.style.opacity = '0';
+        setTimeout(() => particle.remove(), 1500);
+    }, 10);
+    
+    // Parallax effect on the gradient spheres
+    const spheres = document.querySelectorAll('.gradient-sphere');
+    const moveX = (e.clientX / window.innerWidth - 0.5) * 15;
+    const moveY = (e.clientY / window.innerHeight - 0.5) * 15;
+    
+    spheres.forEach((sphere, index) => {
+        const speed = index + 1; // Different speeds for depth
+        sphere.style.transform = `translate(${moveX * speed}px, ${moveY * speed}px)`;
+    });
+});

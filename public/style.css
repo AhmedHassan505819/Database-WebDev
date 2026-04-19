@@ -38,7 +38,6 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    margin-top: 100px;
 }
 
 .chat-header {
@@ -224,7 +223,7 @@ body {
 }
 
 .auth-box input:focus { border-color: var(--primary-color); }
-.auth-box .hidden { display: none; }
+.hidden { display: none !important; }
 
 .auth-box button {
     background: var(--primary-color);
@@ -263,7 +262,7 @@ body {
    ========================================= */
 .welcome-banner {
     position: absolute;
-    top: 80px; /* Pushes it just below the 60px navbar */
+    top: 10px; /* Pushes it just below the 60px navbar */
     width: 100%;
     text-align: center;
     font-size: 1.8rem;
@@ -272,7 +271,6 @@ body {
     text-shadow: 0 0 10px rgba(59, 130, 246, 0.5); /* Cool glow effect */
     transition: opacity 1s ease-out; /* Smooth fade out */
     opacity: 1;
-    margin-bottom: 10px;
 }
 
 /* =========================================
@@ -342,3 +340,151 @@ body {
     background: var(--primary-color);
     border-color: var(--primary-color);
 }
+
+
+
+/* =========================================
+   2. SIDEBAR & CHAT LAYOUT
+   ========================================= */
+/* Change the view to allow side-by-side flexbox */
+.chat-layout {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 80px 20px 20px 20px; /* Space for the top nav */
+    max-width: 1400px;
+    margin: auto;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 280px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    gap: 15px;
+}
+
+.new-chat-btn {
+    background: transparent;
+    border: 1px dashed var(--glass-border);
+    color: var(--text-main);
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: 500;
+}
+
+.new-chat-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--text-main);
+}
+
+.history-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.history-item {
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: 0.2s;
+}
+
+.history-item:hover { background: rgba(59, 130, 246, 0.3); }
+
+/* Make the main chat container fill the rest of the space */
+.chat-container {
+    flex: 1;
+    max-width: 800px; /* Keeps it readable */
+    height: 100%;
+}
+
+
+/* =========================================
+   1. PREMIUM INTERACTIVE BACKGROUND
+   ========================================= */
+.animated-background {
+    position: fixed; /* Traps it to the screen */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    overflow: hidden; /* MAGIC FIX: Stops blobs from breaking the page */
+    background-color: var(--bg-color); /* Keeps your dark navy */
+}
+
+.gradient-sphere {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    transition: transform 0.2s ease-out; /* For the mouse movement */
+}
+
+/* Kept your Blue, Purple, and Emerald color scheme */
+.sphere-1 {
+    width: 45vw; height: 45vw;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.4), transparent 70%);
+    top: -10%; left: -10%;
+    animation: float-1 15s ease-in-out infinite alternate;
+}
+
+.sphere-2 {
+    width: 50vw; height: 50vw;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.3), transparent 70%);
+    bottom: -20%; right: -10%;
+    animation: float-2 18s ease-in-out infinite alternate;
+}
+
+.sphere-3 {
+    width: 35vw; height: 35vw;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.2), transparent 70%);
+    top: 50%; left: 20%;
+    animation: float-3 20s ease-in-out infinite alternate;
+}
+
+.glow-center {
+    position: absolute; width: 50vw; height: 50vh;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.15), transparent 70%);
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    animation: pulse 8s infinite alternate; filter: blur(40px);
+}
+
+.grid-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-size: 40px 40px;
+    background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+
+.noise-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+.particles-container {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
+}
+
+.particle {
+    position: absolute; background: white; border-radius: 50%; opacity: 0; pointer-events: none;
+}
+
+@keyframes float-1 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(10%, 10%) scale(1.1); } }
+@keyframes float-2 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(-10%, -5%) scale(1.15); } }
+@keyframes float-3 { 0% { transform: translate(0, 0) scale(1); opacity: 0.5; } 100% { transform: translate(-5%, 10%) scale(1.05); opacity: 0.8; } }
+@keyframes pulse { 0% { opacity: 0.3; transform: translate(-50%, -50%) scale(0.9); } 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1.1); } }
