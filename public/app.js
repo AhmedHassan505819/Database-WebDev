@@ -58,7 +58,7 @@ async function handleAuth() {
         if (res.ok) {
             // Success! Save the user and switch to the chat screen
             currentUser = data.user;
-            document.getElementById('welcome-user').textContent = `Hello, ${currentUser.username}`;
+            playWelcomeAnimation(currentUser.username);
             
             // If they are an admin, un-hide the Admin Portal button
             if (currentUser.role === 'admin') {
@@ -142,25 +142,58 @@ async function fetchInventory() {
         const res = await fetch('/api/inventory');
         const products = await res.json();
         
-        grid.innerHTML = ""; // Clear loading text
+        grid.innerHTML = ""; 
 
         products.forEach(item => {
+            // Use your requested badge styles
+            const stockClass = item.stockQuantity > 0 ? 'stock-badge' : 'stock-badge out-of-stock';
+            const stockText = item.stockQuantity > 0 ? `${item.stockQuantity} in stock` : 'Out of Stock';
+
             const card = document.createElement('div');
-            card.className = 'glass-panel inventory-card slide-up';
+            card.className = 'inventory-card slide-up';
             card.innerHTML = `
                 <h3>${item.name}</h3>
-                <h2>$${item.price.toFixed(2)}</h2>
-                <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
-                    <label>Stock:</label>
-                    <input type="number" id="qty-${item._id}" class="edit-input" value="${item.stockQuantity}">
-                    <button onclick="updateStock('${item._id}')" class="action-btn" style="padding: 5px 10px; font-size: 0.8rem;">Update</button>
+                <span class="${stockClass}">${stockText}</span>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label style="font-size: 0.9rem; color: var(--text-muted);">Price ($):</label>
+                        <input type="number" id="price-${item._id}" class="edit-input" value="${item.price}">
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label style="font-size: 0.9rem; color: var(--text-muted);">Qty:</label>
+                        <input type="number" id="qty-${item._id}" class="edit-input" value="${item.stockQuantity}">
+                    </div>
+                    <button onclick="updateProduct('${item._id}')" class="action-btn" style="width: 100%; margin-top: 10px;">Update</button>
                 </div>
             `;
             grid.appendChild(card);
         });
     } catch (err) {
-        console.error(err);
         grid.innerHTML = '<h3 style="color:red;">Error loading inventory.</h3>';
+    }
+}
+fetchInventory(); // Load inventory when admin view is opened
+
+// Update the stock and price of an existing product
+async function updateProduct(productId) {
+    const newQty = document.getElementById(`qty-${productId}`).value;
+    const newPrice = document.getElementById(`price-${productId}`).value;
+
+    try {
+        const res = await fetch(`/api/products/${productId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ stockQuantity: newQty, price: newPrice })
+        });
+
+        if (res.ok) {
+            // Automatically refresh the grid to update the badges
+            fetchInventory();
+        } else {
+            alert("Failed to update product.");
+        }
+    } catch (err) {
+        alert("Server Error");
     }
 }
 
@@ -197,29 +230,32 @@ async function addNewProduct() {
     }
 }
 
-// Update the stock quantity of an existing product
-async function updateStock(productId) {
-    const newQty = document.getElementById(`qty-${productId}`).value;
 
-    try {
-        const res = await fetch(`/api/products/${productId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ stockQuantity: newQty })
-        });
 
-        if (res.ok) {
-            alert("Stock Updated!");
-            // Notice we DO NOT need to refresh the grid here, the input box already shows the new number!
+
+
+// Function for the Typewriter Effect
+function playWelcomeAnimation(username) {
+    const banner = document.getElementById('welcome-banner');
+    const text = `Hello, ${username}`;
+    banner.innerHTML = '';
+    banner.style.opacity = '1'; // Ensure it's fully visible
+    
+    let i = 0;
+    const speed = 100; // Milliseconds per letter
+
+    function typeWriter() {
+        if (i < text.length) {
+            banner.innerHTML += text.charAt(i);
+            i++;
+            setTimeout(typeWriter, speed);
         } else {
-            alert("Failed to update stock.");
+            // Once typing is done, wait 6 seconds (6000ms), then fade out
+            setTimeout(() => {
+                banner.style.opacity = '0';
+            }, 10000);
         }
-    } catch (err) {
-        alert("Server Error");
     }
+    
+    typeWriter(); // Start typing!
 }
-
-// Intercept the Admin button click to load inventory before switching views
-document.getElementById('go-admin-btn').addEventListener('click', () => {
-    fetchInventory(); 
-});

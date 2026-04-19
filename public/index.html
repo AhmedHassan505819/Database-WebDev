@@ -24,13 +24,14 @@
         </div>
     </section>
 
-    <section id="chat-view" class="view">
+ <section id="chat-view" class="view">
         <nav class="top-nav">
-            <span id="welcome-user">Hello, User</span>
             <button onclick="switchView('admin-view')" class="nav-btn admin-link hidden" id="go-admin-btn">Admin Portal</button>
             <button onclick="logout()" class="nav-btn">Logout</button>
         </nav>
         
+        <div id="welcome-banner" class="welcome-banner"></div>
+
         <main class="chat-container glass-panel">
             <header class="chat-header">
                 <div class="avatar">🤖</div>
@@ -42,17 +43,19 @@
             <div class="chat-box" id="chat-box"></div>
             <div class="input-area">
                 <input type="text" id="user-input" placeholder="Ask about items or your orders..." autocomplete="off">
-                <button id="send-btn">Send</button>
+                <button id="send-btn">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+</button>
             </div>
         </main>
     </section>
 
     <section id="admin-view" class="view">
         <div class="admin-layout">
-            <header class="nav-header">
-                <h2>👑 Admin Command Center</h2>
-                <button onclick="switchView('chat-view')" class="btn-logout">⬅ Back to Chat</button>
-            </header>
+           <header class="nav-header">
+    <h2>👑 Admin Command Center</h2>
+    <button onclick="switchView('chat-view')" class="btn-return">⬅ Back to Chat</button>
+</header>
 
             <div class="glass-panel add-product-panel">
                 <h3>Add New Inventory</h3>

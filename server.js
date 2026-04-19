@@ -6,6 +6,7 @@ const cors = require('cors');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Product = require('./models/Product'); // Your MongoDB schema
 const User = require('./models/User');
+const Order = require('./models/Order');
 
 const app = express();
 
@@ -31,54 +32,56 @@ app.get('/api/status', (req, res) => {
 
 
 
-// POST route to handle chat messages
-app.post('/api/chat', async (req, res) => {
-  try {
-    const userMessage = req.body.message;
+// // POST route to handle chat messages
 
-    // 1. RETRIEVAL: Get all active inventory from your local MongoDB
-    const inventory = await Product.find({ isActive: true });
+// app.post('/api/chat', async (req, res) => {
+//   try {
+//     const userMessage = req.body.message;
+
+//     // 1. RETRIEVAL: Get all active inventory from your local MongoDB
+//     const inventory = await Product.find({ isActive: true });
     
-    // Format the inventory into a readable string for the AI
-    const inventoryText = inventory.map(item => 
-      `- ${item.name}: $${item.price} (${item.stockQuantity} in stock)`
-    ).join('\n');
+//     // Format the inventory into a readable string for the AI
+//     const inventoryText = inventory.map(item => 
+//       `- ${item.name}: $${item.price} (${item.stockQuantity} in stock)`
+//     ).join('\n');
 
 
 
-    // 2. AUGMENTATION: Build the strict System Instruction
-    const systemInstruction = `
-      You are SmartChat, the automated customer support agent for our tech store. 
-      Your tone is helpful, concise, and professional. 
+//     // 2. AUGMENTATION: Build the strict System Instruction
+//     const systemInstruction = `
+//       You are SmartChat, the automated customer support agent for our tech store. 
+//       Your tone is helpful, concise, and professional. 
       
-      Here is our live database inventory right now:
-      ${inventoryText}
+//       Here is our live database inventory right now:
+//       ${inventoryText}
 
-      RULES:
-      1. ONLY answer questions based on the inventory provided above.
-      2. If a user asks for an item not on the list, tell them it is out of stock.
-      3. If a user asks you to write code, do homework, or answer general knowledge questions, politely refuse and remind them you are a store assistant.
-      4. If a user wants to buy something that is in stock, guide them to use the checkout button.
-    `;
+//       RULES:
+//       1. ONLY answer questions based on the inventory provided above.
+//       2. If a user asks for an item not on the list, tell them it is out of stock.
+//       3. If a user asks you to write code, do homework, or answer general knowledge questions, politely refuse and remind them you are a store assistant.
+//       4. If a user wants to buy something that is in stock, guide them to use the checkout button.
+//     `;
 
-    // 3. GENERATION: Connect to Gemini and send the massive prompt
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.5-flash",
-      systemInstruction: systemInstruction 
-    });
+//     // 3. GENERATION: Connect to Gemini and send the massive prompt
+//     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+//     const model = genAI.getGenerativeModel({ 
+//       model: "gemini-2.5-flash",
+//       systemInstruction: systemInstruction 
+//     });
 
-    const result = await model.generateContent(userMessage);
-    const aiResponse = await result.response.text();
+//     const result = await model.generateContent(userMessage);
+//     const aiResponse = await result.response.text();
 
-    // Send the AI's answer back to the frontend
-    res.json({ reply: aiResponse });
+//     // Send the AI's answer back to the frontend
+//     res.json({ reply: aiResponse });
 
-  } catch (error) {
-    console.error("Chat API Error:", error);
-    res.status(500).json({ reply: "I'm sorry, our system is currently experiencing technical difficulties." });
-  }
-});
+//   } catch (error) {
+//     console.error("Chat API Error:", error);
+//     res.status(500).json({ reply: "I'm sorry, our system is currently experiencing technical difficulties." });
+//   }
+// });
+
 
   // GET route for the Admin Dashboard to see all inventory
 app.get('/api/inventory', async (req, res) => {
@@ -189,20 +192,161 @@ app.post('/api/products', async (req, res) => {
   }
 });
 
-// 2. Update Existing Stock Quantity
+// 2. Update Existing Stock AND Price
 app.put('/api/products/:id', async (req, res) => {
   try {
     const productId = req.params.id;
-    const { stockQuantity } = req.body;
+    const { stockQuantity, price } = req.body; // Now grabbing price too
 
-    // Find the product by its MongoDB ID and update the stock
-    await Product.findByIdAndUpdate(productId, { stockQuantity: Number(stockQuantity) });
-    res.json({ message: "Stock updated successfully!" });
+    await Product.findByIdAndUpdate(productId, { 
+        stockQuantity: Number(stockQuantity),
+        price: Number(price) 
+    });
+    
+    res.json({ message: "Product updated successfully!" });
   } catch (error) {
-    console.error("Update Stock Error:", error);
-    res.status(500).json({ error: "Failed to update stock." });
+    console.error("Update Error:", error);
+    res.status(500).json({ error: "Failed to update product." });
   }
 });
+
+
+
+
+
+// ==========================================
+// AI TOOL FUNCTIONS (Database Transactions)
+// ==========================================
+
+async function handlePlaceOrderDB(username, productName, quantity) {
+    if (!username) return "Error: User must be logged in to buy items. Tell them to log in first.";
+    
+    // Find the product (using a case-insensitive search)
+    const product = await Product.findOne({ name: new RegExp(productName, 'i') });
+    
+    if (!product) return `Error: We don't sell an item named ${productName}.`;
+    if (product.stockQuantity < quantity) return `Error: We only have ${product.stockQuantity} in stock.`;
+
+    // 1. Deduct the stock in MongoDB
+    product.stockQuantity -= quantity;
+    await product.save();
+
+    // 2. Create the Order in MongoDB
+    const newOrder = new Order({
+        customerName: username,
+        items: [{ productName: product.name, quantity: quantity, price: product.price }],
+        totalAmount: product.price * quantity,
+        status: 'Paid & Processing'
+    });
+    await newOrder.save();
+
+    return `Success! Ordered ${quantity}x ${product.name}. Total charged: $${newOrder.totalAmount}. Order ID: ${newOrder._id}`;
+}
+
+async function handleCheckOrdersDB(username) {
+    if (!username) return "Error: User must be logged in to view orders.";
+    
+    // Find all orders matching this exact username
+    const orders = await Order.find({ customerName: username });
+    if (orders.length === 0) return "You currently have no past orders.";
+
+    // Format the orders into a readable string for the AI to understand
+    return orders.map(o => 
+        `- Order ID: ${o._id} | Items: ${o.items[0].quantity}x ${o.items[0].productName} | Total: $${o.totalAmount} | Status: ${o.status}`
+    ).join('\n');
+}
+
+// THE UPGRADED AI CHAT ROUTE (Function Calling)
+
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { message, username } = req.body; // We get the logged-in username from the frontend!
+
+    // 1. Get Live Inventory context
+    const inventory = await Product.find({ isActive: true });
+    const inventoryText = inventory.map(item => `- ${item.name}: $${item.price} (${item.stockQuantity} in stock)`).join('\n');
+
+    // 2. Define the Tools (Give Gemini its "hands")
+    const chatTools = [{
+        functionDeclarations: [
+            {
+                name: "placeOrder",
+                description: "Places a new order. Call this ONLY when the user explicitly asks to buy or order a specific item.",
+                parameters: {
+                    type: "OBJECT",
+                    properties: {
+                        productName: { type: "STRING", description: "The exact name of the product from our inventory" },
+                        quantity: { type: "NUMBER", description: "The amount the user wants to buy" }
+                    },
+                    required: ["productName", "quantity"]
+                }
+            },
+            {
+                name: "checkMyOrders",
+                description: "Retrieves the list of past orders for the currently logged-in user.",
+                parameters: { type: "OBJECT", properties: {} } // No params needed, we use the session username
+            }
+        ]
+    }];
+
+    // 3. Setup Gemini Model
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ 
+        model: "gemini-2.5-flash",
+        systemInstruction: `You are SmartChat, a helpful e-commerce AI. 
+        The current logged-in user is: ${username || 'Guest'}. 
+        Live Inventory: \n${inventoryText}\n
+        Rules:
+        1. If they ask to buy something, USE the placeOrder tool. Do NOT pretend to place an order without using the tool.
+        2. If they ask for their order history, USE the checkMyOrders tool.
+        3. Never invent or hallucinate products that are not in the Live Inventory list.`,
+        tools: chatTools
+    });
+
+    // We use startChat() instead of generateContent() so we can have a back-and-forth dialogue
+    const chat = model.startChat();
+    let result = await chat.sendMessage(message);
+
+    // 4. THE MAGIC: Did Gemini decide to use a tool?
+    const calls = result.response.functionCalls();
+    
+    if (calls && calls.length > 0) {
+        const call = calls[0]; // Get the tool it decided to use
+        let toolResultData = "";
+
+        // Execute your local Node.js Database logic based on the AI's choice
+        if (call.name === "placeOrder") {
+            console.log(`🤖 AI is executing a database purchase for ${username}...`);
+            const { productName, quantity } = call.args;
+            toolResultData = await handlePlaceOrderDB(username, productName, quantity);
+        } else if (call.name === "checkMyOrders") {
+            console.log(`🤖 AI is checking the database for ${username}'s orders...`);
+            toolResultData = await handleCheckOrdersDB(username);
+        }
+
+        // Send the database result BACK to Gemini so it knows what happened!
+        result = await chat.sendMessage([{
+            functionResponse: {
+                name: call.name,
+                response: { result: toolResultData }
+            }
+        }]);
+    }
+
+    // 5. Send the final AI text back to the frontend UI
+    res.json({ reply: result.response.text() });
+
+  } catch (error) {
+    console.error("Chat API Error:", error);
+    res.status(500).json({ reply: "I'm sorry, our system is currently experiencing technical difficulties." });
+  }
+});
+
+
+
+
+
+
 
 
 

@@ -38,6 +38,7 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    margin-top: 100px;
 }
 
 .chat-header {
@@ -241,19 +242,7 @@ body {
 .toggle-text { font-size: 0.85rem; color: var(--text-muted); margin-top: 10px; }
 .toggle-text span { color: var(--primary-color); cursor: pointer; text-decoration: underline; }
 
-/* Admin Additions */
-.add-product-panel {
-    width: 90%;
-    margin-top: 80px;
-    padding: 20px;
-    margin-bottom: -10px;
-}
-.add-flex {
-    display: flex;
-    gap: 15px;
-    margin-top: 15px;
-}
-.add-flex input { flex: 1; padding: 10px; border-radius: 6px; border: none; background: rgba(0,0,0,0.2); color: white;}
+
 .action-btn { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;}
 .action-btn:hover { background: #059669; }
 
@@ -265,4 +254,91 @@ body {
     border: 1px solid var(--glass-border);
     color: white;
     border-radius: 4px;
+}
+
+
+
+/* =========================================
+   NEW TYPEWRITER BANNER STYLES
+   ========================================= */
+.welcome-banner {
+    position: absolute;
+    top: 80px; /* Pushes it just below the 60px navbar */
+    width: 100%;
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 700; /* Bold */
+    color: var(--primary-color);
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.5); /* Cool glow effect */
+    transition: opacity 1s ease-out; /* Smooth fade out */
+    opacity: 1;
+    margin-bottom: 10px;
+}
+
+/* =========================================
+   FIXED ADMIN LAYOUT (NO OVERLAPPING)
+   ========================================= */
+.admin-layout { 
+    height: 100vh; 
+    width: 100vw; 
+    padding: 100px 40px 40px 40px; /* Added top padding so it clears the navbar */
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    overflow-y: auto; /* Allows scrolling if boxes get too tall */
+}
+
+.add-product-panel {
+    width: 100%;
+    max-width: 1200px; /* Matches grid width */
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.add-flex {
+    display: flex;
+    flex-wrap: wrap; /* MAGIC FIX: Forces inputs to new line instead of overlapping */
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.add-flex input { 
+    flex: 1 1 200px; /* Tells inputs to grow, but never shrink below 200px */
+    padding: 12px; 
+    border-radius: 6px; 
+    border: 1px solid var(--glass-border); 
+    background: rgba(0,0,0,0.3); 
+    color: white;
+}
+
+
+
+/* Restored User Preferred Card Styles */
+.inventory-card {
+    background: var(--glass-bg); backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border); border-radius: 16px;
+    padding: 20px; color: white; display: flex; flex-direction: column; gap: 10px;
+}
+.inventory-card h3 { color: var(--primary-color); font-size: 1.1rem; }
+.stock-badge { background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; width: fit-content; }
+.out-of-stock { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+
+/* Admin Header & Return Button */
+.nav-header { 
+    width: 100%; max-width: 1200px; display: flex; justify-content: space-between; align-items: center; 
+    margin-bottom: 20px; 
+}
+.btn-return {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: 500;
+}
+.btn-return:hover {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
 }
