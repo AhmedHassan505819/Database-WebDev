@@ -7,6 +7,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Product = require('./models/Product'); // Your MongoDB schema
 const User = require('./models/User');
 const Order = require('./models/Order');
+const ChatSession = require('./models/ChatSession');
 
 const app = express();
 
@@ -212,6 +213,35 @@ app.put('/api/products/:id', async (req, res) => {
 
 
 
+app.get('/api/sessions/:username', async (req, res) => {
+    try {
+        const user = await User.findOne({ username: req.params.username });
+        if (!user) return res.status(404).json({ error: "User not found" });
+
+        const sessions = await ChatSession.find({ userId: user._id }).sort({ updatedAt: -1 });
+        res.json(sessions);
+    } catch (err) {
+        res.status(500).json({ error: "Failed to load sessions" });
+    }
+});
+// Fetch a specific chat session and all its messages
+app.get('/api/chat/:sessionId', async (req, res) => {
+    try {
+        const session = await ChatSession.findById(req.params.sessionId);
+        if (!session) {
+            return res.status(404).json({ error: "Chat session not found" });
+        }
+        res.json(session);
+    } catch (err) {
+        console.error("Error fetching session:", err);
+        res.status(500).json({ error: "Failed to load chat history" });
+    }
+});
+
+
+
+
+
 
 
 // ==========================================
@@ -256,17 +286,46 @@ async function handleCheckOrdersDB(username) {
     ).join('\n');
 }
 
-// THE UPGRADED AI CHAT ROUTE (Function Calling)
+// ==========================================
+// THE UPGRADED AI CHAT ROUTE (With Database Memory)
+// ==========================================
 
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message, username } = req.body; // We get the logged-in username from the frontend!
+    const { message, username, sessionId } = req.body;
 
-    // 1. Get Live Inventory context
+    if (!username) return res.status(401).json({ reply: "Please log in first." });
+
+    // 1. Find the user & load/create the Chat Session
+    const user = await User.findOne({ username });
+    let session;
+    
+    if (sessionId) {
+        session = await ChatSession.findById(sessionId);
+    } else {
+        // Create a new session if one doesn't exist
+        session = new ChatSession({
+            userId: user._id,
+            title: message.substring(0, 30) + "...", // Auto-generate title
+            messages: []
+        });
+    }
+
+    // 2. Convert MongoDB history into the format Gemini requires
+    // Gemini uses "user" and "model" instead of "bot"
+    const historyForGemini = session.messages.map(msg => ({
+        role: msg.role === 'bot' ? 'model' : 'user',
+        parts: [{ text: msg.content }]
+    }));
+
+    // 3. Save the NEW user message to the database object
+    session.messages.push({ role: 'user', content: message });
+
+    // 4. Get Live Inventory context
     const inventory = await Product.find({ isActive: true });
     const inventoryText = inventory.map(item => `- ${item.name}: $${item.price} (${item.stockQuantity} in stock)`).join('\n');
 
-    // 2. Define the Tools (Give Gemini its "hands")
+    // 5. Define the Tools
     const chatTools = [{
         functionDeclarations: [
             {
@@ -284,47 +343,42 @@ app.post('/api/chat', async (req, res) => {
             {
                 name: "checkMyOrders",
                 description: "Retrieves the list of past orders for the currently logged-in user.",
-                parameters: { type: "OBJECT", properties: {} } // No params needed, we use the session username
+                parameters: { type: "OBJECT", properties: {} }
             }
         ]
     }];
 
-    // 3. Setup Gemini Model
+    // 6. Setup Gemini Model
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ 
-        model: "gemini-2.5-flash",
+        model: "gemini-2.0-flash",
         systemInstruction: `You are SmartChat, a helpful e-commerce AI. 
-        The current logged-in user is: ${username || 'Guest'}. 
+        The current logged-in user is: ${username}. 
         Live Inventory: \n${inventoryText}\n
         Rules:
-        1. If they ask to buy something, USE the placeOrder tool. Do NOT pretend to place an order without using the tool.
+        1. If they ask to buy something, USE the placeOrder tool.
         2. If they ask for their order history, USE the checkMyOrders tool.
-        3. Never invent or hallucinate products that are not in the Live Inventory list.`,
+        3. Never invent products not in the Live Inventory list.`,
         tools: chatTools
     });
 
-    // We use startChat() instead of generateContent() so we can have a back-and-forth dialogue
-    const chat = model.startChat();
+    // 7. Start chat, explicitly passing the converted history!
+    const chat = model.startChat({ history: historyForGemini });
     let result = await chat.sendMessage(message);
 
-    // 4. THE MAGIC: Did Gemini decide to use a tool?
+    // 8. Handle Function Calling (Database tools)
     const calls = result.response.functionCalls();
-    
     if (calls && calls.length > 0) {
-        const call = calls[0]; // Get the tool it decided to use
+        const call = calls[0];
         let toolResultData = "";
 
-        // Execute your local Node.js Database logic based on the AI's choice
         if (call.name === "placeOrder") {
-            console.log(`🤖 AI is executing a database purchase for ${username}...`);
             const { productName, quantity } = call.args;
             toolResultData = await handlePlaceOrderDB(username, productName, quantity);
         } else if (call.name === "checkMyOrders") {
-            console.log(`🤖 AI is checking the database for ${username}'s orders...`);
             toolResultData = await handleCheckOrdersDB(username);
         }
 
-        // Send the database result BACK to Gemini so it knows what happened!
         result = await chat.sendMessage([{
             functionResponse: {
                 name: call.name,
@@ -333,8 +387,15 @@ app.post('/api/chat', async (req, res) => {
         }]);
     }
 
-    // 5. Send the final AI text back to the frontend UI
-    res.json({ reply: result.response.text() });
+    // 9. Get Final Reply, Save to MongoDB, and Send to Frontend
+    const finalReplyText = result.response.text();
+    
+    session.messages.push({ role: 'bot', content: finalReplyText });
+    session.updatedAt = Date.now();
+    await session.save(); // <--- Save both user and bot messages to DB at once
+
+    // Return the reply AND the sessionId so the frontend can keep using it
+    res.json({ reply: finalReplyText, sessionId: session._id });
 
   } catch (error) {
     console.error("Chat API Error:", error);

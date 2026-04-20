@@ -53,7 +53,7 @@
                         <h2>SmartChat Assistant</h2>
                         <p class="status">Ready to take your order</p>
                     </div>
-                    <button onclick="switchView('admin-view')" class="nav-btn admin-link hidden" id="go-admin-btn">Admin Portal</button>
+                    <button onclick="switchView('admin-view'); fetchInventory();" class="nav-btn admin-link hidden" id="go-admin-btn">Admin Portal</button>
                     <button onclick="logout()" class="nav-btn" style="border-color: #ef4444; color: #ef4444;">Logout</button>
                 </header>
                 
@@ -75,7 +75,7 @@
         <div class="admin-layout">
            <header class="nav-header">
     <h2>👑 Admin Command Center</h2>
-    <button onclick="switchView('chat-view')" class="btn-return">⬅ Back to Chat</button>
+    <button onclick="switchView('chat-view'); " class="btn-return">⬅ Back to Chat</button>
 </header>
 
             <div class="glass-panel add-product-panel">

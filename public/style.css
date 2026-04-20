@@ -1,3 +1,6 @@
+/* =========================================
+   1. VARIABLES & GLOBAL STYLES
+   ========================================= */
 :root {
     --bg-color: #0f172a;
     --glass-bg: rgba(255, 255, 255, 0.05);
@@ -9,19 +12,29 @@
     --user-msg-bg: var(--primary-color);
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+}
 
 body {
     font-family: 'Inter', sans-serif;
     background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
     color: var(--text-main);
     height: 100vh;
+    width: 100vw;
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden; /* Prevents the entire page from scrolling */
 }
 
-/* Glassmorphism Panel */
+.hidden { 
+    display: none !important; 
+}
+
+/* Glassmorphism Base Panel */
 .glass-panel {
     background: var(--glass-bg);
     backdrop-filter: blur(16px);
@@ -31,10 +44,180 @@ body {
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
-.chat-container {
+/* =========================================
+   2. VIEW MANAGEMENT & NAVIGATION
+   ========================================= */
+.view {
+    display: none; 
     width: 100%;
-    max-width: 450px;
-    height: 80vh;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+}
+
+.view.active {
+    display: flex; 
+}
+
+.top-nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+}
+
+.nav-btn {
+    background: transparent;
+    color: white;
+    border: 1px solid var(--glass-border);
+    padding: 5px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.nav-btn:hover { 
+    background: var(--primary-color); 
+}
+
+.admin-link { 
+    border-color: var(--text-muted); 
+    opacity: 0.7; 
+}
+
+/* =========================================
+   3. AUTHENTICATION VIEW
+   ========================================= */
+.auth-box {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 350px;
+    text-align: center;
+    padding: 40px 30px;
+}
+
+.auth-box input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass-border);
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.auth-box input:focus { 
+    border-color: var(--primary-color); 
+}
+
+.auth-box button {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 10px;
+    transition: 0.3s;
+}
+
+.auth-box button:hover { 
+    background: #2563eb; 
+}
+
+.toggle-text { 
+    font-size: 0.85rem; 
+    color: var(--text-muted); 
+    margin-top: 10px; 
+}
+
+.toggle-text span { 
+    color: var(--primary-color); 
+    cursor: pointer; 
+    text-decoration: underline; 
+}
+
+/* =========================================
+   4. CHATBOT & SIDEBAR VIEW
+   ========================================= */
+.chat-layout {
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Centers the panels vertically */
+    gap: 20px;
+    width: 100%;
+    max-width: 1400px;
+    height: calc(100vh - 80px); /* Leaves room for nav */
+    margin-top: 60px; /* Pushes layout below the navbar */
+    padding: 20px;
+}
+
+.sidebar {
+    width: 280px;
+    height: 85vh; /* Uniform height with chat container */
+    max-height: 800px;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    gap: 15px;
+}
+
+.new-chat-btn {
+    background: transparent;
+    border: 1px dashed var(--glass-border);
+    color: var(--text-main);
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: 500;
+}
+
+.new-chat-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--text-main);
+}
+
+.history-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.history-item {
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: 0.2s;
+}
+
+.history-item:hover { 
+    background: rgba(59, 130, 246, 0.3); 
+}
+
+.chat-container {
+    flex: 1;
+    max-width: 800px;
+    height: 85vh; /* Pulled slightly upward */
+    max-height: 800px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -55,10 +238,16 @@ body {
     border-radius: 50%;
 }
 
-.chat-header h2 { font-size: 1.2rem; font-weight: 600; }
-.chat-header .status { font-size: 0.85rem; color: #10b981; }
+.chat-header h2 { 
+    font-size: 1.2rem; 
+    font-weight: 600; 
+}
 
-/* Chat Area Layout */
+.chat-header .status { 
+    font-size: 0.85rem; 
+    color: #10b981; 
+}
+
 .chat-box {
     flex: 1;
     padding: 20px;
@@ -89,17 +278,6 @@ body {
     box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
 }
 
-/* Animations */
-.slide-up {
-    animation: slideUpFade 0.3s ease-out forwards;
-}
-
-@keyframes slideUpFade {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Input Area */
 .input-area {
     padding: 20px;
     border-top: 1px solid var(--glass-border);
@@ -143,189 +321,28 @@ body {
     background: #2563eb;
 }
 
-
-/* View Management */
-.view {
-    display: none; /* Hide all sections by default */
-    width: 100%;
-    height: calc(100vh - 60px);
-    justify-content: center;
-    align-items: center;
-}
-
-.view.active {
-    display: flex; /* Show only the active section */
-}
-
-/* Navigation Bar */
-.top-nav {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    height: 60px;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(10px);
-    z-index: 1000;
-}
-
-.nav-btn {
-    background: transparent;
-    color: white;
-    border: 1px solid var(--glass-border);
-    padding: 5px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.nav-btn:hover { background: var(--primary-color); }
-
-.admin-link { border-color: var(--text-muted); opacity: 0.7; }
-
-.admin-btn {
-    color: var(--text-muted);
-    text-decoration: none;
-    font-size: 0.9rem;
-    transition: color 0.3s;
-}
-/* Grid for Dashboard */
-.grid-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    width: 90%;
-    margin-top: 80px;
-}
-
-/* Auth Screen Specifics */
-.auth-box {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    width: 350px;
-    text-align: center;
-    padding: 40px 30px;
-}
-
-.auth-box input {
-    width: 100%;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid var(--glass-border);
-    color: white;
-    padding: 12px;
-    border-radius: 8px;
-    outline: none;
-    transition: 0.3s;
-}
-
-.auth-box input:focus { border-color: var(--primary-color); }
-.hidden { display: none !important; }
-
-.auth-box button {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    margin-top: 10px;
-    transition: 0.3s;
-}
-
-.auth-box button:hover { background: #2563eb; }
-.toggle-text { font-size: 0.85rem; color: var(--text-muted); margin-top: 10px; }
-.toggle-text span { color: var(--primary-color); cursor: pointer; text-decoration: underline; }
-
-
-.action-btn { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;}
-.action-btn:hover { background: #059669; }
-
-/* Quick Edit Inputs in Grid */
-.edit-input {
-    width: 70px;
-    padding: 5px;
-    background: rgba(255,255,255,0.1);
-    border: 1px solid var(--glass-border);
-    color: white;
-    border-radius: 4px;
-}
-
-
-
 /* =========================================
-   NEW TYPEWRITER BANNER STYLES
-   ========================================= */
-.welcome-banner {
-    position: absolute;
-    top: 10px; /* Pushes it just below the 60px navbar */
-    width: 100%;
-    text-align: center;
-    font-size: 1.8rem;
-    font-weight: 700; /* Bold */
-    color: var(--primary-color);
-    text-shadow: 0 0 10px rgba(59, 130, 246, 0.5); /* Cool glow effect */
-    transition: opacity 1s ease-out; /* Smooth fade out */
-    opacity: 1;
-}
-
-/* =========================================
-   FIXED ADMIN LAYOUT (NO OVERLAPPING)
+   5. ADMIN DASHBOARD VIEW
    ========================================= */
 .admin-layout { 
     height: 100vh; 
     width: 100vw; 
-    padding: 100px 40px 40px 40px; /* Added top padding so it clears the navbar */
+    padding: 100px 40px 40px 40px; 
     display: flex; 
     flex-direction: column; 
     align-items: center; 
-    overflow-y: auto; /* Allows scrolling if boxes get too tall */
+    overflow-y: auto; 
 }
 
-.add-product-panel {
-    width: 100%;
-    max-width: 1200px; /* Matches grid width */
-    padding: 20px;
-    margin-bottom: 20px;
-}
-
-.add-flex {
-    display: flex;
-    flex-wrap: wrap; /* MAGIC FIX: Forces inputs to new line instead of overlapping */
-    gap: 15px;
-    margin-top: 15px;
-}
-
-.add-flex input { 
-    flex: 1 1 200px; /* Tells inputs to grow, but never shrink below 200px */
-    padding: 12px; 
-    border-radius: 6px; 
-    border: 1px solid var(--glass-border); 
-    background: rgba(0,0,0,0.3); 
-    color: white;
-}
-
-
-
-/* Restored User Preferred Card Styles */
-.inventory-card {
-    background: var(--glass-bg); backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border); border-radius: 16px;
-    padding: 20px; color: white; display: flex; flex-direction: column; gap: 10px;
-}
-.inventory-card h3 { color: var(--primary-color); font-size: 1.1rem; }
-.stock-badge { background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; width: fit-content; }
-.out-of-stock { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
-
-/* Admin Header & Return Button */
 .nav-header { 
-    width: 100%; max-width: 1200px; display: flex; justify-content: space-between; align-items: center; 
+    width: 100%; 
+    max-width: 1200px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
     margin-bottom: 20px; 
 }
+
 .btn-return {
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid var(--glass-border);
@@ -336,104 +353,143 @@ body {
     transition: 0.3s;
     font-weight: 500;
 }
+
 .btn-return:hover {
     background: var(--primary-color);
     border-color: var(--primary-color);
 }
 
-
-
-/* =========================================
-   2. SIDEBAR & CHAT LAYOUT
-   ========================================= */
-/* Change the view to allow side-by-side flexbox */
-.chat-layout {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    padding: 80px 20px 20px 20px; /* Space for the top nav */
-    max-width: 1400px;
-    margin: auto;
-    height: 100vh;
-}
-
-.sidebar {
-    width: 280px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+.add-product-panel {
+    width: 100%;
+    max-width: 1200px; 
     padding: 20px;
-    gap: 15px;
+    margin-bottom: 20px;
 }
 
-.new-chat-btn {
-    background: transparent;
-    border: 1px dashed var(--glass-border);
-    color: var(--text-main);
-    padding: 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.3s;
-    font-weight: 500;
-}
-
-.new-chat-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: var(--text-main);
-}
-
-.history-list {
-    flex: 1;
-    overflow-y: auto;
+.add-flex {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    flex-wrap: wrap; 
+    gap: 15px;
+    margin-top: 15px;
 }
 
-.history-item {
-    padding: 12px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
+.add-flex input { 
+    flex: 1 1 200px; 
+    padding: 12px; 
+    border-radius: 6px; 
+    border: 1px solid var(--glass-border); 
+    background: rgba(0,0,0,0.3); 
+    color: white;
+}
+
+.action-btn { 
+    background: #10b981; 
+    color: white; 
+    border: none; 
+    padding: 10px 20px; 
+    border-radius: 6px; 
     cursor: pointer;
-    font-size: 0.9rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    transition: 0.2s;
 }
 
-.history-item:hover { background: rgba(59, 130, 246, 0.3); }
-
-/* Make the main chat container fill the rest of the space */
-.chat-container {
-    flex: 1;
-    max-width: 800px; /* Keeps it readable */
-    height: 100%;
+.action-btn:hover { 
+    background: #059669; 
 }
 
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+    margin-top: 30px;
+    padding-bottom: 40px;
+}
+
+.inventory-card {
+    background: var(--glass-bg); 
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border); 
+    border-radius: 16px;
+    padding: 20px; 
+    color: white; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px;
+}
+
+.inventory-card h3 { 
+    color: var(--primary-color); 
+    font-size: 1.1rem; 
+}
+
+.stock-badge { 
+    background: rgba(16, 185, 129, 0.2); 
+    color: #10b981; 
+    padding: 4px 8px; 
+    border-radius: 4px; 
+    font-size: 0.8rem; 
+    width: fit-content; 
+}
+
+.out-of-stock { 
+    background: rgba(239, 68, 68, 0.2); 
+    color: #ef4444; 
+}
+
+.edit-input {
+    width: 70px;
+    padding: 5px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--glass-border);
+    color: white;
+    border-radius: 4px;
+}
 
 /* =========================================
-   1. PREMIUM INTERACTIVE BACKGROUND
+   6. ANIMATIONS & EFFECTS
    ========================================= */
+.slide-up {
+    animation: slideUpFade 0.3s ease-out forwards;
+}
+
+@keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.welcome-banner {
+    position: absolute;
+    top: 10px; 
+    width: 100%;
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 700; 
+    color: var(--primary-color);
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.5); 
+    transition: opacity 1s ease-out; 
+    opacity: 1;
+    z-index: 50;
+}
+
+/* Interactive Background Animations */
 .animated-background {
-    position: fixed; /* Traps it to the screen */
+    position: fixed; 
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
     z-index: -1;
-    overflow: hidden; /* MAGIC FIX: Stops blobs from breaking the page */
-    background-color: var(--bg-color); /* Keeps your dark navy */
+    overflow: hidden; 
+    background-color: var(--bg-color); 
 }
 
 .gradient-sphere {
     position: absolute;
     border-radius: 50%;
     filter: blur(80px);
-    transition: transform 0.2s ease-out; /* For the mouse movement */
+    transition: transform 0.2s ease-out; 
 }
 
-/* Kept your Blue, Purple, and Emerald color scheme */
 .sphere-1 {
     width: 45vw; height: 45vw;
     background: radial-gradient(circle, rgba(59, 130, 246, 0.4), transparent 70%);

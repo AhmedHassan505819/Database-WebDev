@@ -146,7 +146,7 @@ async function fetchInventory() {
     grid.innerHTML = '<h3 style="color: white;">Loading live database...</h3>';
     
     try {
-        const res = await fetch('/api/inventory');
+       const res = await fetch('/api/inventory', { cache: 'no-store' });
         const products = await res.json();
         
         grid.innerHTML = ""; 
@@ -179,7 +179,10 @@ async function fetchInventory() {
         grid.innerHTML = '<h3 style="color:red;">Error loading inventory.</h3>';
     }
 }
+
 fetchInventory(); // Load inventory when admin view is opened
+
+
 
 // Update the stock and price of an existing product
 async function updateProduct(productId) {
@@ -340,3 +343,114 @@ document.addEventListener('mousemove', (e) => {
         sphere.style.transform = `translate(${moveX * speed}px, ${moveY * speed}px)`;
     });
 });
+
+
+// Variable to track if we are in a saved chat or a brand new one
+let currentSessionId = null;
+
+// Function to start a fresh chat
+function startNewChat() {
+    // 1. Clear the chat interface
+    chatBox.innerHTML = '';
+    
+    // 2. Reset the session ID so the backend knows this is a new conversation
+    currentSessionId = null;
+    
+    // 3. Add the initial greeting back to the screen
+    const greetingDiv = document.createElement('div');
+    greetingDiv.className = 'message bot-message slide-up';
+    greetingDiv.textContent = 'Welcome to a new chat! How can I help you today?';
+    chatBox.appendChild(greetingDiv);
+    
+    // 4. Visually deselect any highlighted chats in the sidebar
+    document.querySelectorAll('.history-item').forEach(item => {
+        item.style.background = 'rgba(0, 0, 0, 0.2)';
+        item.style.border = 'none';
+    });
+
+    // 5. NEW: Add a temporary "Ghost" chat to the top of the sidebar
+    const list = document.getElementById('history-list');
+    const tempItem = document.createElement('div');
+    tempItem.className = 'history-item';
+    tempItem.style.background = 'rgba(59, 130, 246, 0.3)'; // Make it look active
+    tempItem.style.border = '1px solid var(--primary-color)';
+    tempItem.textContent = "New Conversation...";
+    
+    // Prepend puts it at the very top of the list!
+    list.prepend(tempItem);
+}
+
+// Call this when a user logs in
+async function loadChatHistory() {
+    const list = document.getElementById('history-list');
+    list.innerHTML = ''; // Clear "Loading..."
+
+    try {
+        const res = await fetch(`/api/sessions/${currentUser.username}`);
+        const sessions = await res.json();
+
+        sessions.forEach(session => {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            item.textContent = session.title;
+            item.onclick = (e) => loadSpecificSession(session._id, e);
+            list.appendChild(item);
+        });
+    } catch (err) {
+        console.error("History failed to load", err);
+    }
+}
+
+// Function to load a specific old chat from the database
+async function loadSpecificSession(sessionId, event) {
+    // 1. Update the current session ID so new messages save to this chat
+    currentSessionId = sessionId;
+    
+    // 2. Clear the screen and show a loading state
+    chatBox.innerHTML = ''; 
+    addMessage("Loading conversation...", false);
+    
+    // 3. Highlight the clicked item in the sidebar visually
+    document.querySelectorAll('.history-item').forEach(el => {
+        el.style.background = 'rgba(0, 0, 0, 0.2)'; // Reset all
+        el.style.border = 'none';
+    });
+    if (event && event.target) {
+        event.target.style.background = 'rgba(59, 130, 246, 0.3)'; // Highlight active
+        event.target.style.border = '1px solid var(--primary-color)';
+    }
+
+    // 4. Fetch the actual messages from MongoDB
+    try {
+        const res = await fetch(`/api/chat/${sessionId}`);
+        const sessionData = await res.json();
+        
+        // 5. Clear the "Loading..." text
+        chatBox.innerHTML = ''; 
+        
+        // 6. Loop through the history and paint it on the screen!
+        if (sessionData.messages && sessionData.messages.length > 0) {
+            sessionData.messages.forEach(msg => {
+                // Determine if it was a user message or bot message
+                const isUser = msg.role === 'user';
+                
+                // We use a simplified version of addMessage here to load them instantly
+                // without triggering the 'slide-up' animation on 50 old messages at once
+                const div = document.createElement('div');
+                div.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+                div.textContent = msg.content;
+                chatBox.appendChild(div);
+            });
+            // Scroll to the very bottom of the loaded chat
+            chatBox.scrollTop = chatBox.scrollHeight;
+        } else {
+            addMessage("This is an empty conversation.", false);
+        }
+        
+    } catch (err) {
+        console.error("Failed to load messages", err);
+        chatBox.innerHTML = '';
+        addMessage("Error loading this conversation from the database.", false);
+    }
+}
+
