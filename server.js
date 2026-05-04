@@ -2,416 +2,268 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const Product = require('./models/Product'); // Your MongoDB schema
+
+// Schemas
+const Product = require('./models/Product');
 const User = require('./models/User');
 const Order = require('./models/Order');
 const ChatSession = require('./models/ChatSession');
 
 const app = express();
-
-// Middleware to parse JSON and allow your frontend to talk to the backend
 app.use(express.json());
 app.use(cors());
 app.use(express.static('public'));
 
-
-// Connect to MongoDB
+// Database Connection
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('✅ Connected to MongoDB via Mongoose!'))
+  .then(() => console.log('✅ Connected to MongoDB!'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
-// A simple test route to make sure things are working
-app.get('/api/status', (req, res) => {
-  res.json({ 
-    message: 'SmartChat Backend is live!', 
-    database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
-    ai_configured: !!process.env.GEMINI_API_KEY 
-  });
-});
+// ==========================================
+// FRONTEND ROUTES
+// ==========================================
+app.get('/', (req, res) => res.sendFile(__dirname + '/public/index.html'));
+app.get('/chat', (req, res) => res.sendFile(__dirname + '/public/chat.html'));
 
-
-
-// // POST route to handle chat messages
-
-// app.post('/api/chat', async (req, res) => {
-//   try {
-//     const userMessage = req.body.message;
-
-//     // 1. RETRIEVAL: Get all active inventory from your local MongoDB
-//     const inventory = await Product.find({ isActive: true });
-    
-//     // Format the inventory into a readable string for the AI
-//     const inventoryText = inventory.map(item => 
-//       `- ${item.name}: $${item.price} (${item.stockQuantity} in stock)`
-//     ).join('\n');
-
-
-
-//     // 2. AUGMENTATION: Build the strict System Instruction
-//     const systemInstruction = `
-//       You are SmartChat, the automated customer support agent for our tech store. 
-//       Your tone is helpful, concise, and professional. 
-      
-//       Here is our live database inventory right now:
-//       ${inventoryText}
-
-//       RULES:
-//       1. ONLY answer questions based on the inventory provided above.
-//       2. If a user asks for an item not on the list, tell them it is out of stock.
-//       3. If a user asks you to write code, do homework, or answer general knowledge questions, politely refuse and remind them you are a store assistant.
-//       4. If a user wants to buy something that is in stock, guide them to use the checkout button.
-//     `;
-
-//     // 3. GENERATION: Connect to Gemini and send the massive prompt
-//     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-//     const model = genAI.getGenerativeModel({ 
-//       model: "gemini-2.5-flash",
-//       systemInstruction: systemInstruction 
-//     });
-
-//     const result = await model.generateContent(userMessage);
-//     const aiResponse = await result.response.text();
-
-//     // Send the AI's answer back to the frontend
-//     res.json({ reply: aiResponse });
-
-//   } catch (error) {
-//     console.error("Chat API Error:", error);
-//     res.status(500).json({ reply: "I'm sorry, our system is currently experiencing technical difficulties." });
-//   }
-// });
-
-
-  // GET route for the Admin Dashboard to see all inventory
-app.get('/api/inventory', async (req, res) => {
-  try {
-    // Fetch all products from MongoDB
-    const inventory = await Product.find({});
-    // Send them back to the frontend as a clean JSON array
-    res.json(inventory);
-  } catch (error) {
-    console.error("Admin API Error:", error);
-    res.status(500).json({ error: "Failed to load inventory" });
-  }
-});
-
-
-
-// AUTHENTICATION ROUTES
-
-// 1. Register a New User
+// ==========================================
+// AUTH & ADMIN API
+// ==========================================
 app.post('/api/register', async (req, res) => {
   try {
     const { username, email, password } = req.body;
+    const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+    if (existingUser) return res.status(400).json({ error: "Username or Email taken!" });
 
-    // Check if the username or email is already in the database
-    const existingUser = await User.findOne({ 
-      $or: [{ username: username }, { email: email }] 
-    });
-    
-    if (existingUser) {
-      return res.status(400).json({ error: "Username or Email already taken!" });
-    }
-
-    // Auto-assign 'admin' role if the username is exactly 'admin'
     const role = username.toLowerCase() === 'admin' ? 'admin' : 'customer';
-    
-    // Create the new user object
-    const newUser = new User({
-      username: username,
-      email: email,
-      password: password, // Note: In a real app we'd use bcrypt to scramble this!
-      role: role
-    });
-
-    // Save to MongoDB
+    const newUser = new User({ username, email, password, role });
     await newUser.save();
     
-    // Send success message and safe user data back to the frontend
-    res.json({ 
-      message: "Registration successful", 
-      user: { username: newUser.username, role: newUser.role } 
-    });
-
-  } catch (error) {
-    console.error("Registration Error:", error);
-    res.status(500).json({ error: "Failed to register user." });
-  }
+    res.json({ message: "Success", user: { username: newUser.username, role: newUser.role } });
+  } catch (error) { res.status(500).json({ error: "Registration failed." }); }
 });
 
-// 2. Login an Existing User
 app.post('/api/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-
-    // Search MongoDB for this exact username
-    const user = await User.findOne({ username: username });
-
-    // If the user doesn't exist, or the password doesn't match...
-    if (!user || user.password !== password) {
-      return res.status(401).json({ error: "Invalid username or password!" });
-    }
-
-    // Success! Send safe user data back
-    res.json({ 
-      message: "Login successful", 
-      user: { username: user.username, role: user.role } 
-    });
-
-  } catch (error) {
-    console.error("Login Error:", error);
-    res.status(500).json({ error: "Failed to login." });
-  }
+    const user = await User.findOne({ username });
+    if (!user || user.password !== password) return res.status(401).json({ error: "Invalid credentials!" });
+    res.json({ message: "Success", user: { username: user.username, role: user.role } });
+  } catch (error) { res.status(500).json({ error: "Login failed." }); }
 });
 
+app.get('/api/inventory', async (req, res) => {
+  try { res.json(await Product.find({})); } 
+  catch (error) { res.status(500).json({ error: "Failed to load inventory" }); }
+});
 
-
-// ==========================================
-// ADMIN INVENTORY ROUTES
-// ==========================================
-
-// 1. Add a Brand New Product
 app.post('/api/products', async (req, res) => {
   try {
     const { name, price, stockQuantity } = req.body;
-    
-    // Create the new product in MongoDB
-    const newProduct = new Product({
-      name: name,
-      price: Number(price),
-      stockQuantity: Number(stockQuantity),
-      category: "General" // Default category
-    });
-
+    const newProduct = new Product({ name, price: Number(price), stockQuantity: Number(stockQuantity), category: "General" });
     await newProduct.save();
-    res.json({ message: "Product added successfully", product: newProduct });
-  } catch (error) {
-    console.error("Add Product Error:", error);
-    res.status(500).json({ error: "Failed to add product." });
-  }
+    res.json({ message: "Success", product: newProduct });
+  } catch (error) { res.status(500).json({ error: "Failed to add product." }); }
 });
 
-// 2. Update Existing Stock AND Price
+
 app.put('/api/products/:id', async (req, res) => {
   try {
-    const productId = req.params.id;
-    const { stockQuantity, price } = req.body; // Now grabbing price too
-
-    await Product.findByIdAndUpdate(productId, { 
-        stockQuantity: Number(stockQuantity),
-        price: Number(price) 
-    });
-    
-    res.json({ message: "Product updated successfully!" });
-  } catch (error) {
-    console.error("Update Error:", error);
-    res.status(500).json({ error: "Failed to update product." });
-  }
+    await Product.findByIdAndUpdate(req.params.id, { stockQuantity: Number(req.body.stockQuantity), price: Number(req.body.price) });
+    res.json({ message: "Success" });
+  } catch (error) { res.status(500).json({ error: "Failed to update." }); }
 });
 
 
 
+// ==========================================
+// ADMIN ANALYTICS ROUTE
+// ==========================================
+app.get('/api/analytics', async (req, res) => {
+    try {
+        const orders = await Order.find({});
+        
+        let totalRevenue = 0;
+        const customerTotals = {};
+
+        // Loop through all orders to calculate totals
+        orders.forEach(order => {
+            totalRevenue += order.totalAmount;
+            
+            // Group spending by customer name
+            if (customerTotals[order.customerName]) {
+                customerTotals[order.customerName] += order.totalAmount;
+            } else {
+                customerTotals[order.customerName] = order.totalAmount;
+            }
+        });
+
+        // Convert the customer object into an array and sort by top spenders
+        const topCustomers = Object.keys(customerTotals)
+            .map(name => ({ name, total: customerTotals[name] }))
+            .sort((a, b) => b.total - a.total)
+            .slice(0, 5); // Only grab the top 5
+
+        res.json({ 
+            totalRevenue: totalRevenue.toFixed(2), 
+            totalOrders: orders.length, 
+            topCustomers 
+        });
+    } catch (error) {
+        console.error("Analytics Error:", error);
+        res.status(500).json({ error: "Failed to load analytics" });
+    }
+});
+
+// ==========================================
+// DELETE A CHAT SESSION
+// ==========================================
+app.delete('/api/chat/:sessionId', async (req, res) => {
+    try {
+        await ChatSession.findByIdAndDelete(req.params.sessionId);
+        res.json({ message: "Chat deleted successfully" });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to delete chat" });
+    }
+});
+
+// ==========================================
+// SESSION API
+// ==========================================
 app.get('/api/sessions/:username', async (req, res) => {
     try {
         const user = await User.findOne({ username: req.params.username });
         if (!user) return res.status(404).json({ error: "User not found" });
-
-        const sessions = await ChatSession.find({ userId: user._id }).sort({ updatedAt: -1 });
-        res.json(sessions);
-    } catch (err) {
-        res.status(500).json({ error: "Failed to load sessions" });
-    }
+        res.json(await ChatSession.find({ userId: user._id }).sort({ updatedAt: -1 }));
+    } catch (err) { res.status(500).json({ error: "Failed to load sessions" }); }
 });
-// Fetch a specific chat session and all its messages
+
 app.get('/api/chat/:sessionId', async (req, res) => {
     try {
         const session = await ChatSession.findById(req.params.sessionId);
-        if (!session) {
-            return res.status(404).json({ error: "Chat session not found" });
-        }
+        if (!session) return res.status(404).json({ error: "Not found" });
         res.json(session);
-    } catch (err) {
-        console.error("Error fetching session:", err);
-        res.status(500).json({ error: "Failed to load chat history" });
-    }
+    } catch (err) { res.status(500).json({ error: "Failed to load history" }); }
 });
 
-
-
-
-
-
-
 // ==========================================
-// AI TOOL FUNCTIONS (Database Transactions)
+// AI TOOL FUNCTIONS
 // ==========================================
-
 async function handlePlaceOrderDB(username, productName, quantity) {
-    if (!username) return "Error: User must be logged in to buy items. Tell them to log in first.";
-    
-    // Find the product (using a case-insensitive search)
+    if (!username) return "Error: Must log in to order.";
     const product = await Product.findOne({ name: new RegExp(productName, 'i') });
     
-    if (!product) return `Error: We don't sell an item named ${productName}.`;
-    if (product.stockQuantity < quantity) return `Error: We only have ${product.stockQuantity} in stock.`;
+    if (!product) return `Error: Item ${productName} not found.`;
+    if (product.stockQuantity < quantity) return `Error: Only ${product.stockQuantity} left.`;
 
-    // 1. Deduct the stock in MongoDB
     product.stockQuantity -= quantity;
     await product.save();
 
-    // 2. Create the Order in MongoDB
     const newOrder = new Order({
         customerName: username,
-        items: [{ productName: product.name, quantity: quantity, price: product.price }],
+        items: [{ productName: product.name, quantity, price: product.price }],
         totalAmount: product.price * quantity,
         status: 'Paid & Processing'
     });
     await newOrder.save();
-
-    return `Success! Ordered ${quantity}x ${product.name}. Total charged: $${newOrder.totalAmount}. Order ID: ${newOrder._id}`;
+    return `Success! Ordered ${quantity}x ${product.name}. Total: $${newOrder.totalAmount}. Order ID: ${newOrder._id}`;
 }
 
 async function handleCheckOrdersDB(username) {
-    if (!username) return "Error: User must be logged in to view orders.";
-    
-    // Find all orders matching this exact username
+    if (!username) return "Error: Must log in.";
     const orders = await Order.find({ customerName: username });
-    if (orders.length === 0) return "You currently have no past orders.";
+    if (orders.length === 0) return "No past orders found.";
 
-    // Format the orders into a readable string for the AI to understand
-    return orders.map(o => 
-        `- Order ID: ${o._id} | Items: ${o.items[0].quantity}x ${o.items[0].productName} | Total: $${o.totalAmount} | Status: ${o.status}`
-    ).join('\n');
+    return orders.map(o => {
+        // Safely check if items exist before trying to read them to prevent crashes
+        const itemName = (o.items && o.items.length > 0) ? o.items[0].productName : "Unknown Item";
+        const itemQty = (o.items && o.items.length > 0) ? o.items[0].quantity : 1;
+        
+        return `- Order ID: ${o._id} | Items: ${itemQty}x ${itemName} | Total: $${o.totalAmount || 0} | Status: ${o.status || 'Unknown'}`;
+    }).join('\n');
 }
 
 // ==========================================
-// THE UPGRADED AI CHAT ROUTE (With Database Memory)
+// GEMINI CHAT ROUTE
 // ==========================================
-
+// ==========================================
+// GEMINI CHAT ROUTE (BULLETPROOF)
+// ==========================================
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, username, sessionId } = req.body;
-
     if (!username) return res.status(401).json({ reply: "Please log in first." });
 
-    // 1. Find the user & load/create the Chat Session
     const user = await User.findOne({ username });
-    let session;
+    if (!user) return res.status(404).json({ reply: "User database error." });
+
+    let session = null;
     
+    // Safely try to find the session
     if (sessionId) {
         session = await ChatSession.findById(sessionId);
-    } else {
-        // Create a new session if one doesn't exist
-        session = new ChatSession({
-            userId: user._id,
-            title: message.substring(0, 30) + "...", // Auto-generate title
-            messages: []
+    }
+
+    // If the session was deleted, or we never had one, make a new one safely
+    if (!session) {
+        session = new ChatSession({ 
+            userId: user._id, 
+            title: message.substring(0, 30) + "...", 
+            messages: [] 
         });
     }
 
-    // 2. Convert MongoDB history into the format Gemini requires
-    // Gemini uses "user" and "model" instead of "bot"
-    const historyForGemini = session.messages.map(msg => ({
-        role: msg.role === 'bot' ? 'model' : 'user',
-        parts: [{ text: msg.content }]
-    }));
+    // Safely map the history for Gemini
+    let historyForGemini = [];
+    if (session.messages && session.messages.length > 0) {
+        historyForGemini = session.messages.map(msg => ({ 
+            role: msg.role === 'bot' ? 'model' : 'user', 
+            parts: [{ text: msg.content }] 
+        }));
+    }
 
-    // 3. Save the NEW user message to the database object
     session.messages.push({ role: 'user', content: message });
 
-    // 4. Get Live Inventory context
     const inventory = await Product.find({ isActive: true });
-    const inventoryText = inventory.map(item => `- ${item.name}: $${item.price} (${item.stockQuantity} in stock)`).join('\n');
+    const inventoryText = inventory.map(item => `- ${item.name}: $${item.price} (${item.stockQuantity} left)`).join('\n');
 
-    // 5. Define the Tools
     const chatTools = [{
         functionDeclarations: [
-            {
-                name: "placeOrder",
-                description: "Places a new order. Call this ONLY when the user explicitly asks to buy or order a specific item.",
-                parameters: {
-                    type: "OBJECT",
-                    properties: {
-                        productName: { type: "STRING", description: "The exact name of the product from our inventory" },
-                        quantity: { type: "NUMBER", description: "The amount the user wants to buy" }
-                    },
-                    required: ["productName", "quantity"]
-                }
-            },
-            {
-                name: "checkMyOrders",
-                description: "Retrieves the list of past orders for the currently logged-in user.",
-                parameters: { type: "OBJECT", properties: {} }
-            }
+            { name: "placeOrder", description: "Places order for user.", parameters: { type: "OBJECT", properties: { productName: { type: "STRING" }, quantity: { type: "NUMBER" } }, required: ["productName", "quantity"] } },
+            { name: "checkMyOrders", description: "Retrieves past orders for user." } // Safely removed parameters requirement here
         ]
     }];
 
-    // 6. Setup Gemini Model
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ 
-        model: "gemini-2.0-flash",
-        systemInstruction: `You are SmartChat, a helpful e-commerce AI. 
-        The current logged-in user is: ${username}. 
-        Live Inventory: \n${inventoryText}\n
-        Rules:
-        1. If they ask to buy something, USE the placeOrder tool.
-        2. If they ask for their order history, USE the checkMyOrders tool.
-        3. Never invent products not in the Live Inventory list.`,
+        model: "gemini-2.5-flash", 
+        systemInstruction: `You are ServeBot. Current user: ${username}.\nInventory: \n${inventoryText}\n1. Use placeOrder to buy.\n2. Use checkMyOrders for history.\n3. Format data lists as Markdown tables.`,
         tools: chatTools
     });
 
-    // 7. Start chat, explicitly passing the converted history!
     const chat = model.startChat({ history: historyForGemini });
     let result = await chat.sendMessage(message);
 
-    // 8. Handle Function Calling (Database tools)
     const calls = result.response.functionCalls();
     if (calls && calls.length > 0) {
         const call = calls[0];
-        let toolResultData = "";
-
-        if (call.name === "placeOrder") {
-            const { productName, quantity } = call.args;
-            toolResultData = await handlePlaceOrderDB(username, productName, quantity);
-        } else if (call.name === "checkMyOrders") {
-            toolResultData = await handleCheckOrdersDB(username);
-        }
-
-        result = await chat.sendMessage([{
-            functionResponse: {
-                name: call.name,
-                response: { result: toolResultData }
-            }
-        }]);
+        let toolResultData = call.name === "placeOrder" ? await handlePlaceOrderDB(username, call.args.productName, call.args.quantity) : await handleCheckOrdersDB(username);
+        result = await chat.sendMessage([{ functionResponse: { name: call.name, response: { result: toolResultData } } }]);
     }
 
-    // 9. Get Final Reply, Save to MongoDB, and Send to Frontend
     const finalReplyText = result.response.text();
-    
     session.messages.push({ role: 'bot', content: finalReplyText });
     session.updatedAt = Date.now();
-    await session.save(); // <--- Save both user and bot messages to DB at once
+    await session.save(); 
 
-    // Return the reply AND the sessionId so the frontend can keep using it
     res.json({ reply: finalReplyText, sessionId: session._id });
 
-  } catch (error) {
-    console.error("Chat API Error:", error);
-    res.status(500).json({ reply: "I'm sorry, our system is currently experiencing technical difficulties." });
+  } catch (error) { 
+      // THIS WILL TELL US EXACTLY WHAT IS WRONG IN YOUR VS CODE TERMINAL
+      console.error("🔥 CRITICAL CHAT API ERROR:", error);
+      res.status(500).json({ reply: "Technical difficulties encountered. Check your VS Code terminal!" }); 
   }
 });
 
 
-
-
-
-
-
-
-
-
-// Start the server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+app.listen(process.env.PORT || 3000, () => console.log('🚀 Server running!'));

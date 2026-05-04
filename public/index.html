@@ -3,96 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartChat </title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>ServeBot AI</title>
+    <link rel="stylesheet" href="landing.css">
 </head>
 <body>
 
-    <div class="animated-background">
-        <div class="gradient-sphere sphere-1"></div>
-        <div class="gradient-sphere sphere-2"></div>
-        <div class="gradient-sphere sphere-3"></div>
-        <div class="glow-center"></div>
-        <div class="grid-overlay"></div>
-        <div class="noise-overlay"></div>
-        <div id="particles-container" class="particles-container"></div>
+    <!-- Cinematic Cloud Background Video -->
+    <div class="video-wrapper">
+        <div class="video-overlay"></div>
+        <!-- I put a placeholder video link here. You can download a high-res cloud video from Pexels or Pixabay and link it locally like "clouds.mp4" -->
+       <video autoplay muted loop playsinline id="bg-video" oncanplay="this.playbackRate = 0.4">
+    <source src="clouds.mp4" type="video/mp4">
+</video>
     </div>
-     <div id="welcome-banner" class="welcome-banner"></div>
 
-    <section id="auth-view" class="view active">
-        <div class="glass-panel auth-box">
-            <h2 id="auth-title">Welcome Back</h2>
-            <p id="auth-subtitle">Sign in to track your orders.</p>
-            
-            <input type="email" id="auth-email" placeholder="Gmail Address" class="hidden">
-            
-            <input type="text" id="auth-username" placeholder="Username" autocomplete="off">
-            <input type="password" id="auth-password" placeholder="Password">
-            
-            <button id="auth-action-btn" onclick="handleAuth()">Sign In</button>
-            <p class="toggle-text">New here? <span onclick="toggleAuthMode()">Register</span></p>
+    <!-- Interactive Glitter Canvas -->
+    <canvas id="glitter-canvas"></canvas>
+
+    <nav>
+        <!-- Upgraded SVG + Gradient Logo -->
+        <div class="logo-container">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="logo-icon">
+                <path d="M12 2a2 2 0 0 1 2 2c-.11.66-.5 1.25-1.07 1.63L12 6.5l-.93-.87A2.003 2.003 0 0 1 10 4a2 2 0 0 1 2-2z"></path>
+                <path d="M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0z"></path>
+                <path d="M21 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M6 15.13A4 4 0 0 0 3 19v2"></path>
+            </svg>
+            <span class="logo-text">ServeBot AI</span>
         </div>
-    </section>
-
- <section id="chat-view" class="view">
         
-        <div class="chat-layout" style="width: 100%;">
-            
-            <aside class="sidebar glass-panel">
-                <button class="new-chat-btn" onclick="startNewChat()">+ New Chat</button>
-                <div class="history-list" id="history-list">
-                    <p style="color: var(--text-muted); font-size: 0.9rem; padding: 10px;">Loading history...</p>
-                    </div>
-            </aside>
-
-            <main class="chat-container glass-panel">
-                <header class="chat-header">
-                    <div class="avatar">🤖</div>
-                    <div style="flex: 1;">
-                        <h2>SmartChat Assistant</h2>
-                        <p class="status">Ready to take your order</p>
-                    </div>
-                    <button onclick="switchView('admin-view'); fetchInventory();" class="nav-btn admin-link hidden" id="go-admin-btn">Admin Portal</button>
-                    <button onclick="logout()" class="nav-btn" style="border-color: #ef4444; color: #ef4444;">Logout</button>
-                </header>
-                
-                
-                <div class="chat-box" id="chat-box"></div>
-                
-                <div class="input-area">
-                    <input type="text" id="user-input" placeholder="Ask about items or your orders..." autocomplete="off">
-                    <button id="send-btn">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                    </button>
-                </div>
-            </main>
-            
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#solutions">Solutions</a>
+            <a href="/login" class="btn btn-glass glass">Login</a>
         </div>
-    </section>
+    </nav>
 
-    <section id="admin-view" class="view">
-        <div class="admin-layout">
-           <header class="nav-header">
-    <h2>👑 Admin Command Center</h2>
-    <button onclick="switchView('chat-view'); " class="btn-return">⬅ Back to Chat</button>
-</header>
+    <!-- Hero Section (Same as before) -->
+    <section class="hero">
+        <div class="hero-text">
+            <h1>Smart AI Customer Support System</h1>
+            <p>Our platform uses advanced AI to automate customer queries, deliver instant responses, and reduce support workload. It ensures faster resolutions.</p>
+            <div class="btn-group">
+                <a href="/chat" class="btn btn-dark">Get Started</a>
+                <a href="#features" class="btn btn-glass glass">Explore</a>
+            </div>
+        </div>
 
-            <div class="glass-panel add-product-panel">
-                <h3>Add New Inventory</h3>
-                <div class="add-flex">
-                    <input type="text" id="new-item-name" placeholder="Product Name">
-                    <input type="number" id="new-item-price" placeholder="Price ($)">
-                    <input type="number" id="new-item-qty" placeholder="Quantity">
-                    <button onclick="addNewProduct()" class="action-btn">Add Item</button>
+      <!-- NEW GLASS CHAT WIDGET -->
+        <div class="hero-visual">
+            <div class="glass-chat-widget glass">
+                <!-- Header -->
+                <div class="chat-header">
+                    <div class="ai-avatar">S</div>
+                    <div class="ai-status">
+                        <h4>ServeBot AI</h4>
+                        <span><span class="online-dot"></span> Online</span>
+                    </div>
+                </div>
+                
+                <!-- Chat Conversation -->
+                <div class="chat-body">
+                    <div class="chat-bubble user-bubble">
+                        Can you check if you have the wireless headphones in stock?
+                    </div>
+                    <div class="chat-bubble ai-bubble">
+                        Yes! We currently have 14 units left in our live inventory. Would you like me to place an order for you?
+                    </div>
+                </div>
+
+                <!-- Input Mockup -->
+                <div class="chat-input-mockup">
+                    <span>Type your message...</span>
+                    <div class="send-btn">↑</div>
                 </div>
             </div>
-
-            <div id="inventory-grid" class="grid-container">
-                </div>
         </div>
     </section>
 
-    <script src="app.js"></script>
+
+
+
+
+    <!-- Glitter Trail Script -->
+    <script>
+        const canvas = document.getElementById('glitter-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particlesArray = [];
+        const mouse = { x: null, y: null };
+
+        // Track mouse movement
+        window.addEventListener('mousemove', function(event) {
+            mouse.x = event.x;
+            mouse.y = event.y;
+            // Spawn 2 particles every time the mouse moves
+            for (let i = 0; i < 2; i++) {
+                particlesArray.push(new Particle());
+            }
+        });
+
+        // Resize canvas if window changes
+        window.addEventListener('resize', function() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        class Particle {
+            constructor() {
+                this.x = mouse.x;
+                this.y = mouse.y;
+                // Smaller size for a more subtle, dust-like feel
+                this.size = Math.random() * 2 + 0.5;
+                // Slower, gentler drift
+                this.speedX = Math.random() * 1.5 - 0.75;
+                this.speedY = Math.random() * 1.5 - 0.75;
+                
+                // Elegant, faint colors: Soft White, Faint Pink, Faint Purple
+                const colors = [
+                    'rgba(255, 255, 255, 0.4)', 
+                    'rgba(216, 27, 96, 0.15)', 
+                    'rgba(142, 36, 170, 0.15)'
+                ];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                // Fade out slightly slower so the trail feels smooth
+                if (this.size > 0.1) this.size -= 0.03;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Reduced glow so it doesn't distract the user
+                ctx.shadowBlur = 4;
+                ctx.shadowColor = this.color;
+            }
+        }
+
+        function animate() {
+            // Clears the canvas slightly every frame to create a trailing effect
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+                particlesArray[i].draw();
+                
+                // Remove particles when they get too small
+                if (particlesArray[i].size <= 0.1) {
+                    particlesArray.splice(i, 1);
+                    i--;
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+  
+
 </body>
 </html>

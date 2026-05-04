@@ -1,12 +1,19 @@
+// ==========================================
+// 1. GLOBAL VARIABLES & UI SWITCHING
+// ==========================================
 let currentUser = null;
 let isLoginMode = true;
+let currentSessionId = null;
+
+const chatBox = document.getElementById('chat-box');
+const userInput = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
 
 function switchView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
 }
 
-// Swaps the UI between "Login" and "Register"
 function toggleAuthMode() {
     isLoginMode = !isLoginMode;
     const emailInput = document.getElementById('auth-email');
@@ -30,8 +37,9 @@ function toggleAuthMode() {
     }
 }
 
-// 2. AUTHENTICATION LOGIC
-
+// ==========================================
+// 2. AUTHENTICATION & INTRO SEQUENCE
+// ==========================================
 async function handleAuth() {
     const username = document.getElementById('auth-username').value.trim();
     const password = document.getElementById('auth-password').value.trim();
@@ -42,10 +50,8 @@ async function handleAuth() {
         return;
     }
 
-    // Determine the API endpoint based on what mode we are in
     const endpoint = isLoginMode ? '/api/login' : '/api/register';
     
-    // We will build this backend route in the next step!
     try {
         const res = await fetch(endpoint, {
             method: 'POST',
@@ -56,18 +62,16 @@ async function handleAuth() {
         const data = await res.json();
 
         if (res.ok) {
-            // Success! Save the user and switch to the chat screen
             currentUser = data.user;
-            playWelcomeAnimation(currentUser.username);
             
-            // If they are an admin, un-hide the Admin Portal button
             if (currentUser.role === 'admin') {
                 document.getElementById('go-admin-btn').classList.remove('hidden');
             } else {
                 document.getElementById('go-admin-btn').classList.add('hidden');
             }
 
-            switchView('chat-view');
+            // Start the cinematic Intro instead of going straight to chat
+            startIntroSequence(currentUser.username);
         } else {
             alert(data.error || "Authentication failed");
         }
@@ -79,29 +83,78 @@ async function handleAuth() {
 
 function logout() {
     currentUser = null;
+    currentSessionId = null;
     document.getElementById('auth-username').value = '';
     document.getElementById('auth-password').value = '';
     document.getElementById('auth-email').value = '';
-    
-    // NEW: Force the admin button to hide when logging out
     document.getElementById('go-admin-btn').classList.add('hidden');
-    
-    // Also clear the chat history so the next person has a fresh screen
-    document.getElementById('chat-box').innerHTML = ''; 
-    
+    chatBox.innerHTML = ''; 
     switchView('auth-view');
 }
 
-// 3. CHAT LOGIC (Using User Context)
+// THE TYPEWRITER INTRO LOGIC
+let introActive = false;
+let introTimeout;
 
-const chatBox = document.getElementById('chat-box');
-const userInput = document.getElementById('user-input');
-const sendBtn = document.getElementById('send-btn');
+function startIntroSequence(username) {
+    switchView('intro-view');
+    introActive = true;
+    
+    const text = `Initializing system...\nWelcome back, ${username}.\nConnecting to ServeBot AI Core...\nLoading secure protocols...\nAccess Granted.`;
+    const container = document.getElementById('intro-text');
+    container.innerHTML = '';
+    
+    let i = 0;
 
+    function type() {
+        if (!introActive) return; // Stop if user skipped
+        if (i < text.length) {
+            // Handle line breaks properly
+            if (text.charAt(i) === '\n') {
+                container.innerHTML += '<br><br>';
+            } else {
+                container.innerHTML += text.charAt(i);
+            }
+            i++;
+            introTimeout = setTimeout(type, 40); // Typing speed
+        } else {
+            // Wait 1.5 seconds after finishing, then go to chat
+            introTimeout = setTimeout(endIntro, 1500); 
+        }
+    }
+    type();
+}
+
+// Ends the intro and loads the actual chat
+function endIntro() {
+    if (!introActive) return;
+    introActive = false;
+    switchView('chat-view');
+    loadChatHistory(); // Load sidebar history 
+}
+
+// Listen for "Enter" key to skip the intro
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && introActive) {
+        clearTimeout(introTimeout);
+        endIntro();
+    }
+});
+
+
+// ==========================================
+// 3. CHAT LOGIC & MARKDOWN
+// ==========================================
 function addMessage(text, isUser) {
     const div = document.createElement('div');
     div.className = `message slide-up ${isUser ? 'user-message' : 'bot-message'}`;
-    div.textContent = text;
+    
+    if (isUser) {
+        div.textContent = text; 
+    } else {
+        div.innerHTML = text; 
+    }
+    
     chatBox.appendChild(div);
     chatBox.scrollTop = chatBox.scrollHeight;
 }
@@ -117,11 +170,24 @@ async function handleChat() {
         const res = await fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            // We now send the username to the AI so it knows who is talking!
-            body: JSON.stringify({ message: text, username: currentUser.username })
+            body: JSON.stringify({ 
+                message: text, 
+                username: currentUser.username,
+                sessionId: currentSessionId
+            })
         });
+        
         const data = await res.json();
-        addMessage(data.reply, false);
+        
+        if (data.sessionId && !currentSessionId) {
+            currentSessionId = data.sessionId;
+            loadChatHistory(); 
+        } else if (data.sessionId) {
+            currentSessionId = data.sessionId;
+        }
+
+        const formattedHTML = marked.parse(data.reply);
+        addMessage(formattedHTML, false);
     } catch (err) {
         addMessage("Server Connection Error", false);
     }
@@ -129,30 +195,157 @@ async function handleChat() {
 
 sendBtn.onclick = handleChat;
 userInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') handleChat();
+    // Only trigger chat if we aren't in the intro screen!
+    if (e.key === 'Enter' && !introActive) handleChat();
 });
 
 
+// ==========================================
+// 4. CHAT HISTORY (SIDEBAR & DELETION)
+// ==========================================
+function startNewChat() {
+    chatBox.innerHTML = '';
+    currentSessionId = null; 
+    
+    const greetingDiv = document.createElement('div');
+    greetingDiv.className = 'message bot-message slide-up';
+    greetingDiv.textContent = 'Welcome to a new chat! How can I help you today?';
+    chatBox.appendChild(greetingDiv);
+    
+    document.querySelectorAll('.history-item').forEach(item => {
+        item.style.background = 'rgba(0, 0, 0, 0.2)';
+        item.style.border = '1px solid transparent';
+    });
 
+    const list = document.getElementById('history-list');
+    const tempItem = document.createElement('div');
+    tempItem.className = 'history-item';
+    tempItem.style.background = 'rgba(216, 27, 96, 0.3)'; 
+    tempItem.style.border = '1px solid var(--primary-color)';
+    tempItem.innerHTML = `<span class="history-title">New Conversation...</span>`;
+    list.prepend(tempItem);
+}
+
+async function loadChatHistory() {
+    const list = document.getElementById('history-list');
+    list.innerHTML = '';
+
+    try {
+        const res = await fetch(`/api/sessions/${currentUser.username}`);
+        const sessions = await res.json();
+
+        sessions.forEach(session => {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            
+            // Build the layout with the title and the delete button
+            item.innerHTML = `
+                <span class="history-title">${session.title}</span>
+                <button class="delete-btn" onclick="deleteSession('${session._id}', event)">✖</button>
+            `;
+
+            if (session._id === currentSessionId) {
+                item.style.background = 'rgba(216, 27, 96, 0.3)';
+                item.style.border = '1px solid var(--primary-color)';
+            }
+            
+            // Make the whole box clickable (except the delete button)
+            item.onclick = (e) => loadSpecificSession(session._id, e);
+            list.appendChild(item);
+        });
+
+        if (sessions.length > 0 && !currentSessionId) {
+            loadSpecificSession(sessions[0]._id);
+        } else if (sessions.length === 0) {
+            startNewChat();
+        }
+    } catch (err) {
+        console.error("History failed to load", err);
+    }
+}
+
+async function loadSpecificSession(sessionId, event) {
+    currentSessionId = sessionId;
+    chatBox.innerHTML = ''; 
+    addMessage("Loading conversation...", false);
+    
+    document.querySelectorAll('.history-item').forEach(el => {
+        el.style.background = 'rgba(0, 0, 0, 0.2)';
+        el.style.border = '1px solid transparent';
+    });
+    
+    if (event && event.currentTarget) {
+        event.currentTarget.style.background = 'rgba(216, 27, 96, 0.3)';
+        event.currentTarget.style.border = '1px solid var(--primary-color)';
+    }
+
+    try {
+        const res = await fetch(`/api/chat/${sessionId}`);
+        const sessionData = await res.json();
+        chatBox.innerHTML = ''; 
+        
+        if (sessionData.messages && sessionData.messages.length > 0) {
+            sessionData.messages.forEach(msg => {
+                const isUser = msg.role === 'user';
+                const div = document.createElement('div');
+                div.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+                
+                if (isUser) {
+                    div.textContent = msg.content;
+                } else {
+                    div.innerHTML = marked.parse(msg.content);
+                }
+                chatBox.appendChild(div);
+            });
+            chatBox.scrollTop = chatBox.scrollHeight;
+        } else {
+            addMessage("This is an empty conversation.", false);
+        }
+    } catch (err) {
+        chatBox.innerHTML = '';
+        addMessage("Error loading this conversation from the database.", false);
+    }
+}
+
+// DELETE A CHAT FROM THE DATABASE
+async function deleteSession(sessionId, event) {
+    event.stopPropagation(); // Prevents the click from loading the chat behind the button
+    
+    // Add a quick confirmation popup
+    if (!confirm("Are you sure you want to delete this conversation?")) return;
+
+    try {
+        const res = await fetch(`/api/chat/${sessionId}`, { method: 'DELETE' });
+        
+        if (res.ok) {
+            // If they deleted the chat they are currently looking at, wipe the screen
+            if (currentSessionId === sessionId) {
+                startNewChat(); 
+            }
+            // Refresh the sidebar
+            loadChatHistory();
+        } else {
+            alert("Failed to delete chat.");
+        }
+    } catch (err) {
+        alert("Server error. Could not delete.");
+    }
+}
 
 
 // ==========================================
-// 4. ADMIN DASHBOARD LOGIC
+// 5. ADMIN DASHBOARD
 // ==========================================
-
-// Fetch and display all inventory in the Admin Dashboard
 async function fetchInventory() {
     const grid = document.getElementById('inventory-grid');
     grid.innerHTML = '<h3 style="color: white;">Loading live database...</h3>';
     
     try {
-       const res = await fetch('/api/inventory', { cache: 'no-store' });
+        const res = await fetch('/api/inventory', { cache: 'no-store' });
         const products = await res.json();
-        
         grid.innerHTML = ""; 
 
         products.forEach(item => {
-            // Use your requested badge styles
             const stockClass = item.stockQuantity > 0 ? 'stock-badge' : 'stock-badge out-of-stock';
             const stockText = item.stockQuantity > 0 ? `${item.stockQuantity} in stock` : 'Out of Stock';
 
@@ -180,11 +373,6 @@ async function fetchInventory() {
     }
 }
 
-fetchInventory(); // Load inventory when admin view is opened
-
-
-
-// Update the stock and price of an existing product
 async function updateProduct(productId) {
     const newQty = document.getElementById(`qty-${productId}`).value;
     const newPrice = document.getElementById(`price-${productId}`).value;
@@ -196,27 +384,17 @@ async function updateProduct(productId) {
             body: JSON.stringify({ stockQuantity: newQty, price: newPrice })
         });
 
-        if (res.ok) {
-            // Automatically refresh the grid to update the badges
-            fetchInventory();
-        } else {
-            alert("Failed to update product.");
-        }
-    } catch (err) {
-        alert("Server Error");
-    }
+        if (res.ok) fetchInventory();
+        else alert("Failed to update product.");
+    } catch (err) { alert("Server Error"); }
 }
 
-// Add a new product from the Admin Panel
 async function addNewProduct() {
     const name = document.getElementById('new-item-name').value.trim();
     const price = document.getElementById('new-item-price').value.trim();
     const qty = document.getElementById('new-item-qty').value.trim();
 
-    if (!name || !price || !qty) {
-        alert("Please fill in all product fields.");
-        return;
-    }
+    if (!name || !price || !qty) return alert("Please fill in all product fields.");
 
     try {
         const res = await fetch('/api/products', {
@@ -226,231 +404,158 @@ async function addNewProduct() {
         });
 
         if (res.ok) {
-            // Clear inputs
             document.getElementById('new-item-name').value = '';
             document.getElementById('new-item-price').value = '';
             document.getElementById('new-item-qty').value = '';
-            // Refresh the grid to show the new item!
             fetchInventory();
-        } else {
-            alert("Failed to add product.");
-        }
-    } catch (err) {
-        alert("Server Error");
-    }
+        } else alert("Failed to add product.");
+    } catch (err) { alert("Server Error"); }
 }
-
-
-
-
-
-// Function for the Typewriter Effect
-function playWelcomeAnimation(username) {
-    const banner = document.getElementById('welcome-banner');
-    const text = `Hello, ${username}`;
-    banner.innerHTML = '';
-    banner.style.opacity = '1'; // Ensure it's fully visible
-    
-    let i = 0;
-    const speed = 400; // Milliseconds per letter
-
-    function typeWriter() {
-        if (i < text.length) {
-            banner.innerHTML += text.charAt(i);
-            i++;
-            setTimeout(typeWriter, speed);
-        } else {
-            // Once typing is done, wait 6 seconds (6000ms), then fade out
-            setTimeout(() => {
-                banner.style.opacity = '0';
-            }, 10000);
-        }
-    }
-    
-    typeWriter(); // Start typing!
-}
-
-
 
 // ==========================================
-// BACKGROUND PARTICLE & MOUSE EFFECTS
+// 6. GLITTER CANVAS & PARALLAX BACKGROUND
 // ==========================================
-const particlesContainer = document.getElementById('particles-container');
-
-// 1. Create floating background particles
-function initParticles() {
-    const particleCount = 50;
-    for (let i = 0; i < particleCount; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        const size = Math.random() * 2 + 1;
-        particle.style.width = `${size}px`;
-        particle.style.height = `${size}px`;
-        particlesContainer.appendChild(particle);
-        animateParticle(particle);
-    }
-}
-
-function animateParticle(particle) {
-    const startX = Math.random() * 100;
-    const startY = Math.random() * 100;
-    particle.style.left = `${startX}%`;
-    particle.style.top = `${startY}%`;
-    particle.style.opacity = '0';
-    
-    const duration = Math.random() * 10 + 10;
-    const delay = Math.random() * 5;
-    
-    setTimeout(() => {
-        particle.style.transition = `all ${duration}s linear`;
-        particle.style.opacity = Math.random() * 0.3 + 0.1;
-        particle.style.left = `${startX + (Math.random() * 20 - 10)}%`;
-        particle.style.top = `${startY - Math.random() * 20}%`;
-        
-        setTimeout(() => { animateParticle(particle); }, duration * 1000);
-    }, delay * 1000);
-}
-
-initParticles();
-
-// 2. Mouse interaction: Trail and Sphere movement
 document.addEventListener('mousemove', (e) => {
-    // Create subtle trail particle
-    const particle = document.createElement('div');
-    particle.className = 'particle';
-    const size = Math.random() * 3 + 2;
-    particle.style.width = `${size}px`;
-    particle.style.height = `${size}px`;
-    particle.style.left = `${(e.clientX / window.innerWidth) * 100}%`;
-    particle.style.top = `${(e.clientY / window.innerHeight) * 100}%`;
-    particle.style.opacity = '0.4';
-    particlesContainer.appendChild(particle);
-    
-    setTimeout(() => {
-        particle.style.transition = 'all 1.5s ease-out';
-        particle.style.transform = `translate(${Math.random() * 40 - 20}px, ${Math.random() * 40 - 20}px)`;
-        particle.style.opacity = '0';
-        setTimeout(() => particle.remove(), 1500);
-    }, 10);
-    
-    // Parallax effect on the gradient spheres
     const spheres = document.querySelectorAll('.gradient-sphere');
     const moveX = (e.clientX / window.innerWidth - 0.5) * 15;
     const moveY = (e.clientY / window.innerHeight - 0.5) * 15;
     
     spheres.forEach((sphere, index) => {
-        const speed = index + 1; // Different speeds for depth
-        sphere.style.transform = `translate(${moveX * speed}px, ${moveY * speed}px)`;
+        sphere.style.transform = `translate(${moveX * (index + 1)}px, ${moveY * (index + 1)}px)`;
     });
 });
 
+// Canvas Glitter Engine (Ported from Landing Page)
+const canvas = document.getElementById('glitter-canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-// Variable to track if we are in a saved chat or a brand new one
-let currentSessionId = null;
+let particlesArray = [];
+const mouse = { x: null, y: null };
 
-// Function to start a fresh chat
-function startNewChat() {
-    // 1. Clear the chat interface
-    chatBox.innerHTML = '';
-    
-    // 2. Reset the session ID so the backend knows this is a new conversation
-    currentSessionId = null;
-    
-    // 3. Add the initial greeting back to the screen
-    const greetingDiv = document.createElement('div');
-    greetingDiv.className = 'message bot-message slide-up';
-    greetingDiv.textContent = 'Welcome to a new chat! How can I help you today?';
-    chatBox.appendChild(greetingDiv);
-    
-    // 4. Visually deselect any highlighted chats in the sidebar
-    document.querySelectorAll('.history-item').forEach(item => {
-        item.style.background = 'rgba(0, 0, 0, 0.2)';
-        item.style.border = 'none';
-    });
+window.addEventListener('mousemove', function(event) {
+    mouse.x = event.x;
+    mouse.y = event.y;
+    for (let i = 0; i < 2; i++) {
+        particlesArray.push(new Particle());
+    }
+});
 
-    // 5. NEW: Add a temporary "Ghost" chat to the top of the sidebar
-    const list = document.getElementById('history-list');
-    const tempItem = document.createElement('div');
-    tempItem.className = 'history-item';
-    tempItem.style.background = 'rgba(59, 130, 246, 0.3)'; // Make it look active
-    tempItem.style.border = '1px solid var(--primary-color)';
-    tempItem.textContent = "New Conversation...";
-    
-    // Prepend puts it at the very top of the list!
-    list.prepend(tempItem);
+window.addEventListener('resize', function() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+});
+
+class Particle {
+    constructor() {
+        this.x = mouse.x;
+        this.y = mouse.y;
+        this.size = Math.random() * 2 + 0.5;
+        this.speedX = Math.random() * 1.5 - 0.75;
+        this.speedY = Math.random() * 1.5 - 0.75;
+        const colors = [
+            'rgba(255, 255, 255, 0.4)', 
+            'rgba(216, 27, 96, 0.15)', 
+            'rgba(142, 36, 170, 0.15)'
+        ];
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+    }
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.size > 0.1) this.size -= 0.03;
+    }
+    draw() {
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = this.color;
+    }
 }
 
-// Call this when a user logs in
-async function loadChatHistory() {
-    const list = document.getElementById('history-list');
-    list.innerHTML = ''; // Clear "Loading..."
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let i = 0; i < particlesArray.length; i++) {
+        particlesArray[i].update();
+        particlesArray[i].draw();
+        
+        if (particlesArray[i].size <= 0.1) {
+            particlesArray.splice(i, 1);
+            i--;
+        }
+    }
+    requestAnimationFrame(animate);
+}
+animate();
 
+// ==========================================
+// 7. ADMIN ANALYTICS (CHART.JS)
+// ==========================================
+let adminChart = null; // Keep track of the chart so we can destroy/redraw it
+
+async function loadAnalytics() {
     try {
-        const res = await fetch(`/api/sessions/${currentUser.username}`);
-        const sessions = await res.json();
+        const res = await fetch('/api/analytics');
+        const data = await res.json();
 
-        sessions.forEach(session => {
-            const item = document.createElement('div');
-            item.className = 'history-item';
-            item.textContent = session.title;
-            item.onclick = (e) => loadSpecificSession(session._id, e);
-            list.appendChild(item);
+        // Update the big numbers
+        document.getElementById('total-revenue-stat').textContent = `$${data.totalRevenue}`;
+        document.getElementById('total-orders-stat').textContent = data.totalOrders;
+
+        // Prepare data for the Chart
+        const labels = data.topCustomers.map(c => c.name);
+        const totals = data.topCustomers.map(c => c.total);
+
+        const ctx = document.getElementById('topCustomersChart').getContext('2d');
+
+        // Destroy the old chart if it exists so it doesn't overlap
+        if (adminChart) adminChart.destroy();
+
+        // Draw the new glowing chart!
+        adminChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total Spent ($)',
+                    data: totals,
+                    backgroundColor: 'rgba(216, 27, 96, 0.6)', // Pink
+                    borderColor: 'rgba(216, 27, 96, 1)',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    hoverBackgroundColor: 'rgba(142, 36, 170, 0.8)' // Purple
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                color: '#f8fafc',
+                plugins: {
+                    legend: { labels: { color: '#f8fafc' } },
+                    title: {
+                        display: true,
+                        text: 'Top 5 Customers',
+                        color: '#f8fafc',
+                        font: { size: 16 }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        ticks: { color: '#a1a1aa' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#a1a1aa' }
+                    }
+                }
+            }
         });
     } catch (err) {
-        console.error("History failed to load", err);
+        console.error("Failed to load analytics");
     }
 }
-
-// Function to load a specific old chat from the database
-async function loadSpecificSession(sessionId, event) {
-    // 1. Update the current session ID so new messages save to this chat
-    currentSessionId = sessionId;
-    
-    // 2. Clear the screen and show a loading state
-    chatBox.innerHTML = ''; 
-    addMessage("Loading conversation...", false);
-    
-    // 3. Highlight the clicked item in the sidebar visually
-    document.querySelectorAll('.history-item').forEach(el => {
-        el.style.background = 'rgba(0, 0, 0, 0.2)'; // Reset all
-        el.style.border = 'none';
-    });
-    if (event && event.target) {
-        event.target.style.background = 'rgba(59, 130, 246, 0.3)'; // Highlight active
-        event.target.style.border = '1px solid var(--primary-color)';
-    }
-
-    // 4. Fetch the actual messages from MongoDB
-    try {
-        const res = await fetch(`/api/chat/${sessionId}`);
-        const sessionData = await res.json();
-        
-        // 5. Clear the "Loading..." text
-        chatBox.innerHTML = ''; 
-        
-        // 6. Loop through the history and paint it on the screen!
-        if (sessionData.messages && sessionData.messages.length > 0) {
-            sessionData.messages.forEach(msg => {
-                // Determine if it was a user message or bot message
-                const isUser = msg.role === 'user';
-                
-                // We use a simplified version of addMessage here to load them instantly
-                // without triggering the 'slide-up' animation on 50 old messages at once
-                const div = document.createElement('div');
-                div.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
-                div.textContent = msg.content;
-                chatBox.appendChild(div);
-            });
-            // Scroll to the very bottom of the loaded chat
-            chatBox.scrollTop = chatBox.scrollHeight;
-        } else {
-            addMessage("This is an empty conversation.", false);
-        }
-        
-    } catch (err) {
-        console.error("Failed to load messages", err);
-        chatBox.innerHTML = '';
-        addMessage("Error loading this conversation from the database.", false);
-    }
-}
-

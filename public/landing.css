@@ -1,0 +1,431 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    scroll-behavior: smooth;
+}
+
+body {
+    color: #1a1a2e;
+    overflow-x: hidden;
+}
+
+/* --- VIDEO BACKGROUND --- */
+.video-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    overflow: hidden;
+}
+
+#bg-video {
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover; /* Ensures video fills screen without stretching */
+}
+
+/* Creates a soft purple/pink tint over the video so text is readable */
+.video-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(252, 228, 236, 0.6), rgba(232, 234, 246, 0.6));
+    backdrop-filter: blur(4px); /* Very slight blur on the background */
+}
+
+/* --- UTILITIES --- */
+.glass {
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+}
+
+/* --- NAVBAR & LOGO UPGRADE --- */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 5%;
+    position: relative;
+    z-index: 10;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-icon {
+    color: #d81b60;
+    filter: drop-shadow(0 0 8px rgba(216, 27, 96, 0.4));
+}
+
+.logo-text {
+    font-weight: 800;
+    font-size: 1.5rem;
+    background: linear-gradient(90deg, #d81b60, #8e24aa);
+    -webkit-background-clip: text;
+    background-clip: text; /* <--- Add this exact line right here */
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #333;
+    margin: 0 1rem;
+    font-weight: 600;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover {
+    color: #d81b60;
+}
+
+/* --- HERO SECTION --- */
+.hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10%;
+    /* Forces the hero to take up the exact height of the screen minus the navbar */
+    height: calc(100vh - 90px); 
+}
+
+.hero-text {
+    flex: 1;
+    padding-right: 50px;
+}
+
+.hero-text h1 {
+    font-size: 4.5rem;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    color: #111;
+    letter-spacing: -2px;
+}
+
+.hero-text p {
+    font-size: 1.2rem;
+    color: #444;
+    margin-bottom: 2.5rem;
+    max-width: 500px;
+    line-height: 1.6;
+}
+
+/* Buttons */
+.btn-group {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.btn {
+    padding: 1rem 2.5rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-dark {
+    background: #111;
+    color: #fff;
+    border: none;
+}
+
+.btn-dark:hover {
+    background: #333;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+
+.btn-glass {
+    color: #111;
+}
+
+.btn-glass:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-3px);
+}
+
+/* Mockup Card */
+.hero-visual {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.mockup-card {
+    border-radius: 24px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 480px;
+    transform: rotate(-2deg);
+    transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.mockup-card:hover {
+    transform: rotate(0deg) scale(1.03);
+}
+
+.mockup-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    padding-bottom: 1rem;
+}
+
+.mockup-body h3 {
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+}
+
+.mockup-body p {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+.mockup-input {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    padding: 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #777;
+    font-weight: 500;
+}
+
+
+
+
+
+/* --- THE GLASS TERMINAL --- */
+.hero-visual {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+@keyframes float-terminal {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
+    100% { transform: translateY(0px); }
+}
+
+/* Terminal Mac-style Header */
+.terminal-header {
+    background: rgba(255, 255, 255, 0.5);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.4);
+}
+
+.terminal-dots {
+    display: flex;
+    gap: 6px;
+}
+
+.terminal-dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.terminal-dots span:nth-child(1) { background: #ff5f56; } /* Red */
+.terminal-dots span:nth-child(2) { background: #ffbd2e; } /* Yellow */
+.terminal-dots span:nth-child(3) { background: #27c93f; } /* Green */
+
+.terminal-title {
+    margin-left: auto;
+    margin-right: auto;
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: #555;
+    font-weight: 600;
+}
+
+/* Terminal Body & Text */
+.terminal-body {
+    padding: 25px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.95rem;
+    color: #333;
+    line-height: 1.8;
+}
+
+.terminal-body .accent {
+    color: #d81b60; /* Matches your brand pink/purple */
+    font-weight: bold;
+}
+
+.terminal-body .status {
+    color: #27c93f; /* Success green */
+    float: right;
+    font-weight: bold;
+}
+
+/* Blinking cursor effect on the last line */
+.blinking-cursor {
+    animation: blink 1.5s step-end infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+
+/* --- THE GLASS CHAT WIDGET --- */
+.glass-chat-widget {
+    width: 100%;
+    max-width: 420px;
+    border-radius: 24px;
+    padding: 1.5rem;
+    /* Keeps the floating animation */
+    animation: float-terminal 6s ease-in-out infinite; 
+    
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.08);
+}
+
+.chat-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.ai-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #d81b60, #8e24aa);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 10px rgba(216, 27, 96, 0.3);
+}
+
+.ai-status h4 {
+    font-size: 1.05rem;
+    color: #111;
+    margin-bottom: 2px;
+}
+
+.ai-status span {
+    font-size: 0.8rem;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+}
+
+.online-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #27c93f; /* Glowing green status */
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 8px rgba(39, 201, 63, 0.6);
+}
+
+/* Chat Bubbles */
+.chat-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    margin-bottom: 1.5rem;
+}
+
+.chat-bubble {
+    padding: 1rem 1.2rem;
+    border-radius: 18px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    max-width: 85%;
+}
+
+.user-bubble {
+    background: linear-gradient(135deg, #d81b60, #8e24aa);
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px; /* Gives it the chat "tail" */
+    box-shadow: 0 8px 20px rgba(216, 27, 96, 0.2);
+}
+
+.ai-bubble {
+    background: rgba(255, 255, 255, 0.8);
+    color: #222;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* Input Area */
+.chat-input-mockup {
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 50px;
+    padding: 0.5rem 0.5rem 0.5rem 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #888;
+    font-size: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.send-btn {
+    background: #111;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+
+
+/* --- GLITTER CANVAS --- */
+#glitter-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1; /* Sits right above the video, but behind the glass UI */
+    pointer-events: none; /* Crucial: Allows you to click 'through' the glitter */
+}
