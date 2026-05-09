@@ -494,7 +494,7 @@ animate();
 // ==========================================
 // 7. ADMIN ANALYTICS (CHART.JS)
 // ==========================================
-let adminChart = null; // Keep track of the chart so we can destroy/redraw it
+let adminChart = null;
 
 async function loadAnalytics() {
     try {
@@ -522,11 +522,11 @@ async function loadAnalytics() {
                 datasets: [{
                     label: 'Total Spent ($)',
                     data: totals,
-                    backgroundColor: 'rgba(216, 27, 96, 0.6)', // Pink
+                    backgroundColor: 'rgba(216, 27, 96, 0.6)', 
                     borderColor: 'rgba(216, 27, 96, 1)',
                     borderWidth: 2,
                     borderRadius: 8,
-                    hoverBackgroundColor: 'rgba(142, 36, 170, 0.8)' // Purple
+                    hoverBackgroundColor: 'rgba(142, 36, 170, 0.8)' 
                 }]
             },
             options: {
@@ -537,7 +537,7 @@ async function loadAnalytics() {
                     legend: { labels: { color: '#f8fafc' } },
                     title: {
                         display: true,
-                        text: 'Top 5 Customers',
+                        text: 'Top Spenders',
                         color: '#f8fafc',
                         font: { size: 16 }
                     }
@@ -556,6 +556,19 @@ async function loadAnalytics() {
             }
         });
     } catch (err) {
-        console.error("Failed to load analytics");
+        console.error("Failed to load analytics", err);
     }
 }
+
+// Toggle mobile sidebar
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    sidebar.classList.toggle('show-sidebar');
+}
+
+// Optional: Close sidebar if user clicks a chat on mobile
+document.querySelectorAll('.history-item').forEach(item => {
+    item.addEventListener('click', () => {
+        document.querySelector('.sidebar').classList.remove('show-sidebar');
+    });
+});

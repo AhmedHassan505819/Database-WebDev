@@ -429,3 +429,80 @@ nav {
     z-index: 1; /* Sits right above the video, but behind the glass UI */
     pointer-events: none; /* Crucial: Allows you to click 'through' the glitter */
 }
+
+
+/* =========================================
+   MOBILE RESPONSIVENESS (LANDING PAGE)
+   ========================================= */
+@media (max-width: 900px) {
+    /* 1. Navbar Adjustments */
+    nav {
+        padding: 1.2rem 5%;
+    }
+    
+    /* Hide the text links to keep the header clean, but keep the Login button */
+    .nav-links a:not(.btn-glass) {
+        display: none;
+    }
+
+    /* 2. Stack the Hero Section */
+    .hero {
+        flex-direction: column;
+        justify-content: center;
+        height: auto;
+        min-height: calc(100vh - 80px);
+        padding: 3rem 5%;
+        text-align: center;
+    }
+
+    /* 3. Scale Down the Text */
+    .hero-text {
+        padding-right: 0;
+        margin-bottom: 3rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center; 
+    }
+
+    .hero-text h1 {
+        font-size: 2.6rem; /* Scaled down from 4.5rem so it fits on screen */
+        line-height: 1.2;
+        margin-bottom: 1rem;
+    }
+
+    .hero-text p {
+        font-size: 1.05rem;
+        margin-bottom: 2rem;
+        max-width: 100%;
+    }
+
+    /* 4. Optimize the Buttons for Thumbs */
+    .btn-group {
+        justify-content: center;
+        width: 100%;
+        max-width: 350px;
+        flex-direction: column; /* Stacks the buttons vertically */
+        gap: 1rem;
+    }
+
+    .btn {
+        width: 100%; /* Makes buttons full-width for easy tapping */
+        text-align: center;
+        padding: 1.2rem;
+    }
+
+    /* 5. Center and Scale the Glass Widget */
+    .hero-visual {
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+    .glass-chat-widget {
+        max-width: 100%;
+        padding: 1.2rem;
+    }
+    
+    .chat-bubble {
+        font-size: 0.9rem;
+    }
+}

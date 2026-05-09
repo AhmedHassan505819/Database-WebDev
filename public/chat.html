@@ -7,12 +7,9 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
-</head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> </head>
 <body>
 
-    <!-- Cinematic Background -->
     <div class="animated-background">
         <div class="gradient-sphere sphere-1"></div>
         <div class="gradient-sphere sphere-2"></div>
@@ -22,24 +19,22 @@
         <div class="noise-overlay"></div>
     </div>
     
-    <!-- Fix for Particles: Canvas Glitter Layer -->
     <canvas id="glitter-canvas"></canvas>
 
-    <!-- 1. LOGIN VIEW -->
     <section id="auth-view" class="view active">
-        <div class="glass-panel auth-box">
+        <form class="glass-panel auth-box" onsubmit="event.preventDefault(); handleAuth();">
             <h2 id="auth-title">Welcome Back</h2>
             <p id="auth-subtitle">Sign in to track your orders.</p>
             
             <input type="email" id="auth-email" placeholder="Gmail Address" class="hidden">
             <input type="text" id="auth-username" placeholder="Username" autocomplete="off">
-            <input type="text" id="auth-password" class="masked-password" placeholder="Password">            
-            <button id="auth-action-btn" onclick="handleAuth()">Sign In</button>
+            <input type="text" id="auth-password" class="masked-password" placeholder="Password">
+            
+            <button type="submit" id="auth-action-btn">Sign In</button>
             <p class="toggle-text">New here? <span onclick="toggleAuthMode()">Register</span></p>
-        </div>
+        </form>
     </section>
 
-    <!-- 2. NEW TYPEWRITER INTRO VIEW -->
     <section id="intro-view" class="view">
         <div class="intro-container">
             <div id="intro-text" class="typewriter-text"></div>
@@ -47,26 +42,35 @@
         </div>
     </section>
 
-    <!-- 3. CHAT VIEW -->
     <section id="chat-view" class="view">
         <div class="chat-layout">
-            <!-- Sidebar -->
             <aside class="sidebar glass-panel">
+                <button class="close-sidebar-btn mobile-only" onclick="toggleSidebar()">✖</button>
+                
                 <button class="new-chat-btn" onclick="startNewChat()">+ New Chat</button>
                 <div class="history-list" id="history-list">
                     <p style="color: var(--text-muted); font-size: 0.9rem; padding: 10px;">Loading history...</p>
                 </div>
             </aside>
 
-            <!-- Main Chat -->
             <main class="chat-container glass-panel">
                 <header class="chat-header">
+                    <button class="nav-btn mobile-only" onclick="toggleSidebar()">☰</button>
+                    
                     <div class="avatar">S</div>
                     <div style="flex: 1;">
                         <h2>ServeBot AI Core</h2>
                         <p class="status">System Online</p>
                     </div>
-                    <button onclick="switchView('admin-view'); fetchInventory(); loadAnalytics();" class="nav-btn admin-link hidden" id="go-admin-btn">Admin Portal</button>                    <button onclick="logout()" class="nav-btn" style="border-color: #ef4444; color: #ef4444;">Logout</button>
+                    
+                    <div class="header-actions">
+                        <button onclick="switchView('admin-view'); fetchInventory(); loadAnalytics();" class="nav-btn admin-link hidden" id="go-admin-btn">
+                            👑 <span class="action-text">Admin</span>
+                        </button>
+                        <button onclick="logout()" class="nav-btn logout-btn">
+                            🚪 <span class="action-text">Logout</span>
+                        </button>
+                    </div>
                 </header>
                 
                 <div class="chat-box" id="chat-box"></div>
@@ -79,7 +83,6 @@
         </div>
     </section>
 
-    <!-- 4. ADMIN VIEW -->
     <section id="admin-view" class="view">
         <div class="admin-layout">
             <header class="nav-header">
@@ -87,7 +90,6 @@
                 <button onclick="switchView('chat-view'); " class="btn-return">⬅ Back to Chat</button>
             </header>
 
-            <!-- NEW: ANALYTICS DASHBOARD -->
             <div class="analytics-container">
                 <div class="stats-card glass-panel">
                     <h3>Total Revenue</h3>
