@@ -26,6 +26,7 @@ mongoose.connect(process.env.MONGODB_URI)
 // ==========================================
 app.get('/', (req, res) => res.sendFile(__dirname + '/public/index.html'));
 app.get('/chat', (req, res) => res.sendFile(__dirname + '/public/chat.html'));
+app.get('/login', (req, res) => res.sendFile(__dirname + '/public/chat.html'));
 
 // ==========================================
 // AUTH & ADMIN API

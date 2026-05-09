@@ -56,8 +56,22 @@ nav {
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem 5%;
-    position: relative;
+    position: sticky;
+    top: 0;
     z-index: 10;
+  transition: background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+
+}
+
+
+nav.scrolled {
+  background-color: white;
+  
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
+}
+
+nav.scrolled a {
+  color: black; 
 }
 
 .logo-container {
@@ -432,6 +446,212 @@ nav {
 
 
 /* =========================================
+   FOOTER (LANDING PAGE)
+   ========================================= */
+.glass-footer {
+    background: rgba(11, 9, 20, 0.85); /* Dark frosted glass */
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    color: #f8fafc;
+    padding: 4rem 10% 2rem;
+    margin-top: 4rem; /* Gives space after the About section */
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 3rem;
+    margin-bottom: 3rem;
+}
+
+.footer-brand {
+    max-width: 350px;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.footer-logo h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: linear-gradient(90deg, #fff, #a1a1aa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.footer-brand p {
+    color: #a1a1aa;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.footer-links, .footer-legal {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.footer-links h3, .footer-legal h3 {
+    font-size: 1.1rem;
+    color: #fff;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.footer-links a, .footer-legal a {
+    color: #a1a1aa;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.3s;
+}
+
+.footer-links a:hover, .footer-legal a:hover {
+    color: #d81b60; /* Pink hover effect */
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: #71717a;
+    font-size: 0.9rem;
+}
+
+
+/* =========================================
+   CAPABILITIES SECTION (LANDING PAGE)
+   ========================================= */
+/* =========================================
+   CAPABILITIES SECTION (LANDING PAGE)
+   ========================================= */
+.capabilities-section {
+    padding: 6rem 10%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* REMOVED the muddy grey background entirely */
+    background: transparent; 
+}
+
+/* ... keep header styles ... */
+
+.cap-icon {
+    margin-bottom: 1.5rem;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 70px;
+    height: 70px;
+    background: rgba(216, 27, 96, 0.1); /* Soft pink backdrop */
+    border-radius: 20px;
+    border: 1px solid rgba(216, 27, 96, 0.3);
+}
+
+.cap-icon svg {
+    stroke: #d81b60; /* Match your primary pink */
+    transition: 0.3s;
+}
+
+.capability-card:hover .cap-icon svg {
+    stroke: #fff; /* Turns white when you hover over the card */
+}
+
+
+.capabilities-header {
+    text-align: center;
+    margin-bottom: 4rem;
+    max-width: 800px;
+}
+
+.capabilities-header h2 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: #f8fafc;
+    margin-bottom: 1rem;
+}
+
+.capabilities-header p {
+    font-size: 1.15rem;
+    color: #4d4d52;
+    line-height: 1.6;
+}
+
+.capabilities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 3rem;
+    width: 100%;
+    max-width: 1100px;
+}
+
+/* Overriding the light glass-card to make it Dark Mode */
+.capability-card {
+    background: rgba(11, 9, 20, 0.7); 
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #f8fafc;
+    padding: 3.5rem 3rem;
+    text-align: left; /* Keep text aligned left for easy reading */
+}
+
+.capability-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 30px 60px rgba(216, 27, 96, 0.15); /* Glowing Pink Shadow */
+}
+
+.capability-card h3 {
+    font-size: 1.6rem;
+    margin-bottom: 2rem;
+    color: #f8fafc;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 1rem;
+}
+
+.cap-list {
+    list-style: none;
+    padding: 0;
+}
+
+.cap-list li {
+    margin-bottom: 1.5rem;
+    padding-left: 2rem;
+    position: relative;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #4d4d52;
+
+}
+
+/* Custom bullet points */
+.cap-list li::before {
+    content: "✦";
+    position: absolute;
+    left: 0;
+    color: #d81b60; /* Primary Pink */
+    font-size: 1.2rem;
+    top: -2px;
+}
+
+.cap-list li strong {
+    color: #fff;
+    display: block;
+    font-size: 1.05rem;
+    margin-bottom: 0.3rem;
+    letter-spacing: 0.5px;
+}
+
+
+
+
+
+/* =========================================
    MOBILE RESPONSIVENESS (LANDING PAGE)
    ========================================= */
 @media (max-width: 900px) {
@@ -504,5 +724,134 @@ nav {
     
     .chat-bubble {
         font-size: 0.9rem;
+
+        /* Footer Mobile Stacking */
+    .footer-content {
+        flex-direction: column;
+        gap: 2.5rem;
     }
+    
+    .glass-footer {
+        padding: 3rem 5% 2rem;
+    }
+    }
+}
+
+
+
+/* =========================================
+   ABOUT SECTION (LANDING PAGE)
+   ========================================= */
+.about-section {
+    padding: 5rem 10%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.about-header {
+    text-align: center;
+    margin-bottom: 4rem;
+    max-width: 800px;
+}
+
+.about-header h2 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, #d81b60, #8e24aa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1.2rem;
+}
+
+.about-header p {
+    font-size: 1.15rem;
+    color: #444; 
+    line-height: 1.6;
+    font-weight: 500;
+}
+
+/* Premium Light Glassmorphism */
+.glass-card {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.08);
+    border-radius: 24px;
+    padding: 3rem 2.5rem;
+}
+
+.team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 3rem;
+    width: 100%;
+    max-width: 1000px;
+}
+
+.team-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.team-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.12);
+}
+
+.team-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    font-size: 2.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255,255,255,0.9);
+    border: 3px solid;
+    margin-bottom: 1.5rem;
+}
+
+.team-card h3 {
+    font-size: 1.6rem;
+    color: #111;
+    margin-bottom: 0.5rem;
+}
+
+.team-card .role {
+    color: #d81b60;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    font-size: 1.05rem;
+}
+
+.contributions {
+    list-style: none;
+    text-align: left;
+    width: 100%;
+}
+
+.contributions li {
+    position: relative;
+    padding-left: 2rem;
+    margin-bottom: 1rem;
+    color: #333;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.contributions li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #8e24aa;
+    font-weight: 800;
+    font-size: 1.2rem;
 }

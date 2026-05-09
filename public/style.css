@@ -277,6 +277,7 @@ body {
   padding: 25px;
   border-bottom: 1px solid var(--glass-border);
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 20px;
 }
@@ -720,10 +721,26 @@ body {
 /* Chrome Password Warning Fix */
 .masked-password { -webkit-text-security: disc; }
 
-/* Grouped Header Actions */
-.header-actions { display: flex; gap: 10px; align-items: center; }
-.logout-btn { border-color: rgba(239, 68, 68, 0.4); color: #ef4444; }
+/* Grouped Header Actions (Desktop) */
+.header-actions { display: flex; gap: 12px; align-items: center; }
+
+.nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Spaces the SVG from the text */
+}
+
+/* Admin Button Styling */
+.admin-link { border-color: rgba(216, 27, 96, 0.4); color: var(--text-main); }
+.admin-link svg { stroke: var(--primary-color); transition: 0.3s; }
+.admin-link:hover { background: rgba(216, 27, 96, 0.1); border-color: var(--primary-color); }
+.admin-link:hover svg { stroke: var(--text-main); }
+
+/* Logout Button Styling */
+.logout-btn { border-color: rgba(239, 68, 68, 0.4); color: var(--text-main); }
+.logout-btn svg { stroke: #ef4444; transition: 0.3s; }
 .logout-btn:hover { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; }
+.logout-btn:hover svg { stroke: var(--text-main); }
 
 /* Mobile Sidebar Close Button */
 .close-sidebar-btn {
@@ -739,6 +756,9 @@ body {
     z-index: 10; /* Keeps it above the history list */
 }
 .close-sidebar-btn:hover { color: var(--primary-color); }
+
+
+
 
 
 
@@ -801,16 +821,23 @@ body {
     /* Hide the text, keep the emojis */
     .action-text { display: none; }
     
+   /* Hide the text, keep the SVGs */
+    .action-text { display: none; }
+    
     /* Make the action buttons tiny circles on mobile */
     .admin-link, .logout-btn {
-        width: 38px;
-        height: 38px;
-        padding: 0;
+        width: 42px;
+        height: 42px;
+        padding: 0; /* Remove text padding */
         border-radius: 50%;
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 1.1rem;
+    }
+
+    /* Remove the gap since there is no text to separate */
+    .admin-link svg, .logout-btn svg {
+        margin: 0;
     }
 
     /* --- FIXING THE INPUT AREA --- */

@@ -33,9 +33,9 @@
         </div>
         
         <div class="nav-links">
-            <a href="#features">Features</a>
-            <a href="#solutions">Solutions</a>
-            <a href="/login" class="btn btn-glass glass">Login</a>
+            <a href="#about">About</a>
+            <a href="#capabilities">Features</a>
+            <a href="/chat" class="btn btn-glass">Login</a>
         </div>
     </nav>
 
@@ -55,10 +55,20 @@
             <div class="glass-chat-widget glass">
                 <!-- Header -->
                 <div class="chat-header">
-                    <div class="ai-avatar">S</div>
+                    <svg width="35" height="35" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="footer-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#d81b60" />
+                                <stop offset="100%" stop-color="#8e24aa" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M32 4L56 18V46L32 60L8 46V18L32 4Z" stroke="url(#footer-grad)" stroke-width="4" fill="rgba(216, 27, 96, 0.15)"/>
+                        <circle cx="32" cy="32" r="10" fill="url(#footer-grad)"/>
+                        <path d="M32 16V22M32 42V48M16 32H22M42 32H48M20 20L25 25M39 39L44 44M20 44L25 39M39 25L44 20" stroke="url(#footer-grad)" stroke-width="3" stroke-linecap="round"/>
+                    </svg>
                     <div class="ai-status">
                         <h4>ServeBot AI</h4>
-                        <span><span class="online-dot"></span> Online</span>
+                        
                     </div>
                 </div>
                 
@@ -80,6 +90,120 @@
             </div>
         </div>
     </section>
+
+
+
+<section id="capabilities" class="capabilities-section">
+        <div class="capabilities-header">
+            <h2>System Capabilities</h2>
+            <p>From seamless customer interactions to powerful administrative command and control.</p>
+        </div>
+
+        <div class="capabilities-grid">
+            <div class="glass-card capability-card">
+                <div class="cap-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
+                </div>
+                <ul class="cap-list">
+                    <li><strong>Natural Language Processing</strong> Understands complex queries and casual conversation using Gemini 1.5 Flash.</li>
+                    <li><strong>Instant Order Placement</strong> Securely checks live inventory and processes purchases in real-time.</li>
+                    <li><strong>History Retrieval</strong> Customers can instantly pull up their past orders, quantities, and payment statuses.</li>
+                    <li><strong>Markdown Formatting</strong> Organizes product lists and receipts into clean, readable UI tables.</li>
+                </ul>
+            </div>
+
+            <div class="glass-card capability-card">
+                <div class="cap-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+                </div>
+                <h3>Command Center (Admin)</h3>
+                <ul class="cap-list">
+                    <li><strong>Live Aggregation Analytics</strong> Tracks global revenue and ranks top spenders using interactive Chart.js graphs.</li>
+                    <li><strong>Inventory Management</strong> Add new products, update prices, and monitor stock levels without leaving the dashboard.</li>
+                    <li><strong>Automated Audit Trails</strong> Triggers secretly log manual price changes and stock overrides for complete accountability.</li>
+                    <li><strong>Database Syncing</strong> All AI actions and admin updates are perfectly synchronized via MongoDB ACID Transactions.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+
+
+
+
+
+    <section id="about" class="about-section">
+        <div class="about-header">
+            <h2>Next-Gen E-Commerce Intelligence</h2>
+            <p>ServeBot blends real-time natural language processing with a robust MongoDB backend to deliver an unparalleled, lightning-fast shopping experience.</p>
+        </div>
+
+        <div class="team-grid">
+            <div class="glass-card team-card">
+                <div class="team-avatar" style="border-color: #d81b60; box-shadow: 0 0 20px rgba(216,27,96,0.3);">⚙️</div>
+                <h3>Ahmed Hassan</h3>
+                <p class="role">Backend & AI Architect</p>
+                <ul class="contributions">
+                    <li>Engineered Express.js REST APIs and routing logic.</li>
+                    <li>Implemented MongoDB ACID Transactions and Triggers.</li>
+                    <li>Designed high-performance Aggregation Pipelines.</li>
+                    <li>Integrated Gemini AI prompting and JSON tool-calling.</li>
+                </ul>
+            </div>
+            
+            <div class="glass-card team-card">
+                <div class="team-avatar" style="border-color: #8e24aa; box-shadow: 0 0 20px rgba(142,36,170,0.3);">🎨</div>
+                <h3>Usman</h3>
+                <p class="role">Frontend & UI/UX Director</p>
+                <ul class="contributions">
+                    <li>Designed the Midnight Glassmorphism visual theme.</li>
+                    <li>Engineered Mobile-First CSS responsive media queries.</li>
+                    <li>Built semantic HTML structures and DOM architecture.</li>
+                    <li>Developed cinematic canvas particles and animations.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+
+    <footer class="glass-footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <svg width="35" height="35" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="footer-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#d81b60" />
+                                <stop offset="100%" stop-color="#8e24aa" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M32 4L56 18V46L32 60L8 46V18L32 4Z" stroke="url(#footer-grad)" stroke-width="4" fill="rgba(216, 27, 96, 0.15)"/>
+                        <circle cx="32" cy="32" r="10" fill="url(#footer-grad)"/>
+                        <path d="M32 16V22M32 42V48M16 32H22M42 32H48M20 20L25 25M39 39L44 44M20 44L25 39M39 25L44 20" stroke="url(#footer-grad)" stroke-width="3" stroke-linecap="round"/>
+                    </svg>
+                    <h2>ServeBot AI</h2>
+                </div>
+                <p>Next-generation e-commerce intelligence. Built with MongoDB Aggregation and Gemini AI.</p>
+            </div>
+
+            <div class="footer-links">
+                <h3>Explore</h3>
+                <a href="#about">The Architecture</a>
+                <a href="#">Enterprise Features</a>
+                <a href="/chat">Admin Login</a>
+            </div>
+
+            <div class="footer-legal">
+                <h3>System</h3>
+                <a href="#">API Documentation</a>
+                <a href="#">System Status: Online</a>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2026 ServeBot Architecture Team (Ahmed & Usman). All rights reserved.</p>
+        </div>
+    </footer>
 
 
 
@@ -163,6 +287,24 @@
             requestAnimationFrame(animate);
         }
         animate();
+
+        // Grab the navbar element (assuming you used a <nav> tag)
+const navbar = document.querySelector('nav');
+
+// Listen for any scrolling on the page
+window.addEventListener('scroll', () => {
+  
+  // Check how far down the page the user has scrolled
+  if (window.scrollY > 50) {
+    // If they scrolled down 50px or more, add the white background
+    navbar.classList.add('scrolled');
+  } else {
+    // If they are at the top, remove it to make it transparent again
+    navbar.classList.remove('scrolled');
+  }
+  
+});
+
     </script>
   
 
