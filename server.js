@@ -55,7 +55,7 @@ app.post('/api/login', async (req, res) => {
 });
 
 app.get('/api/inventory', async (req, res) => {
-    try { res.json(await Product.find({})); }
+    try { res.json(await Product.find({ isDeleted: { $ne: true } })); }
     catch (error) { res.status(500).json({ error: "Failed to load inventory" }); }
 });
 
@@ -78,41 +78,86 @@ app.put('/api/products/:id', async (req, res) => {
     const newPrice = Number(req.body.price);
     const newQty = Number(req.body.stockQuantity);
 
-    // Get the old product FIRST so we can compare
-    const oldProduct = await Product.findById(productId);
-    if (!oldProduct) return res.status(404).json({ error: "Product not found" });
+    const product = await Product.findById(productId);
+    if (!product) return res.status(404).json({ error: "Product not found" });
 
-    // 🔥 ADB FEATURE 3: AUDIT LOGGING TRIGGER
-    // If the admin changed the price, write it to the immutable ledger
-    if (oldProduct.price !== newPrice) {
+    // 1. Store the old values securely BEFORE we change them
+    const oldPrice = product.price;
+    const oldQty = product.stockQuantity;
+
+    // 2. Apply the new values to the product
+    product.price = newPrice;
+    product.stockQuantity = newQty;
+
+    // 3. THE FIX: Attempt to save the product FIRST. 
+    // If you type a negative number, the Pre-Save Hook will throw an error 
+    // right here, and the code will immediately jump to the catch block!
+    await product.save();
+
+    // 4. If we made it this far, the save was 100% successful. 
+    // NOW it is safe to write to the permanent Audit Ledger.
+    if (oldPrice !== newPrice) {
         await AuditLog.create({
             action: "PRICE_CHANGE",
-            productId: oldProduct._id,
-            productName: oldProduct.name,
-            oldValue: oldProduct.price,
+            productId: product._id,
+            productName: product.name,
+            oldValue: oldPrice,
             newValue: newPrice
         });
     }
 
-    if (oldProduct.stockQuantity !== newQty) {
+    if (oldQty !== newQty) {
         await AuditLog.create({
-            action: "MANUAL_STOCK_OVERRIDE", // Explicitly naming it so you know it wasn't a normal sale
-            productId: oldProduct._id,
-            productName: oldProduct.name,
-            oldValue: oldProduct.stockQuantity,
+            action: "MANUAL_STOCK_OVERRIDE", 
+            productId: product._id,
+            productName: product.name,
+            oldValue: oldQty,
             newValue: newQty
         });
     }
 
-    // Now update the actual product
-    oldProduct.price = newPrice;
-    oldProduct.stockQuantity = newQty;
-    await oldProduct.save();
-
     res.json({ message: "Success - Product updated and audited." });
   } catch (error) { 
+      // If the save failed, the Audit Logs are never written. Clean and safe!
+      console.error("🔥 CRITICAL UPDATE ERROR:", error); 
       res.status(500).json({ error: "Failed to update." }); 
   }
+});
+
+// ==========================================
+// ADMIN API: SOFT DELETE A PRODUCT
+// ==========================================
+app.delete('/api/products/:id', async (req, res) => {
+    try {
+        const productId = req.params.id;
+
+        // 🔥 ADB FEATURE: Soft Delete Execution
+        // Instead of destroying the data, we just flip the boolean flag.
+        // Because of our middleware, this item will instantly vanish from the UI.
+        const deletedProduct = await Product.findByIdAndUpdate(
+            productId, 
+            { isDeleted: true }, 
+            { new: true } // Returns the updated document
+        );
+
+        if (!deletedProduct) {
+            return res.status(404).json({ error: "Product not found" });
+        }
+
+        // Optional: Audit log that an admin removed this item!
+        
+        await AuditLog.create({
+            action: "PRODUCT_SOFT_DELETED",
+            productId: deletedProduct._id,
+            productName: deletedProduct.name
+        });
+        
+
+        res.json({ message: `${deletedProduct.name} successfully removed from active inventory.` });
+    } catch (error) {
+        console.error("Delete Error:", error);
+        res.status(500).json({ error: "Failed to delete product." });
+    }
 });
 
 
@@ -209,43 +254,33 @@ app.get('/api/chat/:sessionId', async (req, res) => {
 async function handlePlaceOrderDB(username, productName, quantity) {
     if (!username) return "Error: Must log in to order.";
 
-    //  ADB FEATURE 1 IN ACTION: Using the $text search index!
-    const product = await Product.findOne({ $text: { $search: productName } });
+   const product = await Product.findOne({ 
+        $text: { $search: productName },
+        isDeleted: { $ne: true }
+    });
     
     if (!product) return `Error: Item ${productName} not found.`;
     if (product.stockQuantity < quantity) return `Error: Only ${product.stockQuantity} left.`;
 
-    //  ADB FEATURE 2: MONGODB TRANSACTIONS
-    // Start a secure, isolated session
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
     try {
-        // Step A: Deduct the stock (passing the session)
+        // Step A: Deduct the stock
         product.stockQuantity -= quantity;
-        await product.save({ session });
+        await product.save();
 
-        // Step B: Create the Order (passing the session)
+        // Step B: Create the Order
         const newOrder = new Order({
             customerName: username,
             items: [{ productName: product.name, quantity, price: product.price }],
             totalAmount: product.price * quantity,
             status: 'Paid & Processing'
         });
-        await newOrder.save({ session });
-
-        // Step C: If both succeeded, COMMIT the data permanently
-        await session.commitTransaction();
-        session.endSession();
+        await newOrder.save();
 
         return `Success! Ordered ${quantity}x ${product.name}. Total: $${newOrder.totalAmount}.`;
 
     } catch (error) {
-        // Step D: If ANYTHING failed, ABORT and roll back all changes!
-        await session.abortTransaction();
-        session.endSession();
-        console.error("Transaction Aborted:", error);
-        return "Critical Error: Order failed. No stock was deducted.";
+        console.error("Order Error:", error);
+        return "Critical Error: Order failed. Please try again.";
     }
 }
 
@@ -304,7 +339,7 @@ app.post('/api/chat', async (req, res) => {
 
         session.messages.push({ role: 'user', content: message });
 
-        const inventory = await Product.find({ isActive: true });
+        const inventory = await Product.find({ isDeleted: { $ne: true } });
         const inventoryText = inventory.map(item => `- ${item.name}: $${item.price} (${item.stockQuantity} left)`).join('\n');
 
         const chatTools = [{

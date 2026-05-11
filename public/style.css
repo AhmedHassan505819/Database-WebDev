@@ -758,6 +758,39 @@ body {
 .close-sidebar-btn:hover { color: var(--primary-color); }
 
 
+/* =========================================
+   ADMIN DASHBOARD: DELETE BUTTON
+   ========================================= */
+.btn-delete {
+    background: rgba(239, 68, 68, 0.1); /* Soft red glass */
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #ef4444;
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px;
+}
+
+.btn-delete:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); /* Glowing red hover state */
+    color: #fff; /* Make the icon turn white on hover */
+    transform: translateY(-2px);
+}
+
+.btn-delete svg {
+    transition: stroke 0.3s ease;
+}
+
+.btn-delete:hover svg {
+    stroke: #ffffff;
+}
+
 
 
 

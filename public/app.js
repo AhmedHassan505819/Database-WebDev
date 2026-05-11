@@ -363,7 +363,20 @@ async function fetchInventory() {
                         <label style="font-size: 0.9rem; color: var(--text-muted);">Qty:</label>
                         <input type="number" id="qty-${item._id}" class="edit-input" value="${item.stockQuantity}">
                     </div>
-                    <button onclick="updateProduct('${item._id}')" class="action-btn" style="width: 100%; margin-top: 10px;">Update</button>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button onclick="updateProduct('${item._id}')" class="action-btn" style="flex: 1;">Update</button>
+                        
+                        <button onclick="deleteProduct('${item._id}', '${item.name}')" class="btn-delete" title="Remove Product">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                <line x1="10" y1="11" x2="10" y2="17"></line>
+                                <line x1="14" y1="11" x2="14" y2="17"></line>
+                            </svg>
+                        </button>
+                    </div>
+
                 </div>
             `;
             grid.appendChild(card);
@@ -410,6 +423,38 @@ async function addNewProduct() {
             fetchInventory();
         } else alert("Failed to add product.");
     } catch (err) { alert("Server Error"); }
+}
+
+
+
+// ==========================================
+// ADMIN CAPABILITY: SOFT DELETE PRODUCT
+// ==========================================
+async function deleteProduct(productId, productName) {
+    // 1. The Safety Net: Force the admin to confirm the deletion
+    const isConfirmed = confirm(`⚠️ SYSTEM WARNING:\nAre you sure you want to remove "${productName}"?\nIt will be hidden from the store, but historical order data will be preserved.`);
+    
+    if (!isConfirmed) return; // If they click 'Cancel', abort the function.
+
+    try {
+        // 2. The API Call: Send the DELETE request to your Express server
+        const response = await fetch(`/api/products/${productId}`, {
+            method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // 3. The UI Refresh: If the database update succeeds, refresh the list instantly
+            console.log(data.message);
+            fetchInventory(); 
+        } else {
+            alert(`Error: ${data.error}`);
+        }
+    } catch (error) {
+        console.error("Failed to execute Soft Delete:", error);
+        alert("Critical Error: Could not connect to the database.");
+    }
 }
 
 // ==========================================
