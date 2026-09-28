@@ -47,6 +47,14 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.ht
 app.get('/chat', (req, res) => res.sendFile(path.join(__dirname, 'public', 'chat.html')));
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'chat.html')));
 
+// DEBUG ROUTE
+app.get('/api/debug-db', (req, res) => {
+    res.json({
+        hasMongoUri: !!process.env.MONGODB_URI,
+        uriPreview: process.env.MONGODB_URI ? process.env.MONGODB_URI.substring(0, 15) + "..." : "MISSING"
+    });
+});
+
 // ==========================================
 // AUTH & ADMIN API
 // ==========================================
