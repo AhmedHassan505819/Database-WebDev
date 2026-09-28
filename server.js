@@ -384,7 +384,7 @@ app.post('/api/chat', async (req, res) => {
 
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({
-            model: "gemini-2.5-flash",
+            model: "gemini-1.5-flash",
             systemInstruction: `You are ServeBot. Current user: ${username}.
         \nInventory: \n${inventoryText}\n1. Use placeOrder to buy.
         \n2. Use checkMyOrders for history.
@@ -410,9 +410,9 @@ app.post('/api/chat', async (req, res) => {
         res.json({ reply: finalReplyText, sessionId: session._id });
 
     } catch (error) {
-        // THIS WILL TELL US EXACTLY WHAT IS WRONG IN YOUR VS CODE TERMINAL
+        // THIS WILL TELL US EXACTLY WHAT IS WRONG
         console.error("🔥 CRITICAL CHAT API ERROR:", error);
-        res.status(500).json({ reply: "Technical difficulties encountered. Check your VS Code terminal!" });
+        res.status(500).json({ reply: `Technical difficulty: ${error.message}` });
     }
 });
 
