@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
+const path = require('path');
+
 // Schemas
 const Product = require('./models/Product');
 const User = require('./models/User');
@@ -14,7 +16,7 @@ const AuditLog = require('./models/AuditLog');
 const app = express();
 app.use(express.json());
 app.use(cors());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Database Connection
 mongoose.connect(process.env.MONGODB_URI)
@@ -24,9 +26,9 @@ mongoose.connect(process.env.MONGODB_URI)
 // ==========================================
 // FRONTEND ROUTES
 // ==========================================
-app.get('/', (req, res) => res.sendFile(__dirname + '/public/index.html'));
-app.get('/chat', (req, res) => res.sendFile(__dirname + '/public/chat.html'));
-app.get('/login', (req, res) => res.sendFile(__dirname + '/public/chat.html'));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('/chat', (req, res) => res.sendFile(path.join(__dirname, 'public', 'chat.html')));
+app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'chat.html')));
 
 // ==========================================
 // AUTH & ADMIN API
