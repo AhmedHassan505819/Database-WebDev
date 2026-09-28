@@ -90,6 +90,7 @@ body {
   text-align: center;
   width: 80%;
   max-width: 800px;
+  padding: 20px;
 }
 
 .typewriter-text {
@@ -100,6 +101,7 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   min-height: 250px; /* Keeps layout from jumping */
+  word-break: break-word;
 }
 
 .skip-hint {
@@ -128,6 +130,7 @@ body {
   flex-direction: column;
   gap: 15px;
   width: 400px;
+  max-width: 90vw;
   text-align: center;
   padding: 50px 40px;
 }
@@ -140,6 +143,7 @@ body {
   border-radius: 12px;
   outline: none;
   transition: 0.3s;
+  font-size: 1rem;
 }
 .auth-box input:focus {
   border-color: var(--primary-color);
@@ -194,6 +198,7 @@ body {
   flex-direction: column;
   padding: 25px;
   gap: 15px;
+  flex-shrink: 0;
 }
 
 .new-chat-btn {
@@ -272,14 +277,16 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-width: 0; /* Prevents flex overflow */
 }
 .chat-header {
-  padding: 25px;
+  padding: 20px 25px;
   border-bottom: 1px solid var(--glass-border);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 20px;
+  gap: 15px;
+  flex-shrink: 0;
 }
 .avatar {
   font-size: 1.6rem;
@@ -293,6 +300,7 @@ body {
   justify-content: center;
   align-items: center;
   box-shadow: 0 5px 15px rgba(216, 27, 96, 0.3);
+  flex-shrink: 0;
 }
 .chat-header h2 {
   font-size: 1.4rem;
@@ -312,6 +320,7 @@ body {
   cursor: pointer;
   transition: 0.3s;
   font-weight: bold;
+  white-space: nowrap;
 }
 .nav-btn:hover {
   background: rgba(255, 255, 255, 0.1);
@@ -324,6 +333,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-height: 0; /* Crucial for flex scroll */
 }
 .message {
   max-width: 75%;
@@ -331,6 +341,8 @@ body {
   border-radius: 18px;
   font-size: 1.05rem;
   line-height: 1.6;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 .bot-message {
   background: var(--bot-msg-bg);
@@ -346,10 +358,11 @@ body {
 }
 
 .input-area {
-  padding: 25px;
+  padding: 20px 25px;
   border-top: 1px solid var(--glass-border);
   display: flex;
   gap: 15px;
+  flex-shrink: 0;
 }
 #user-input {
   flex: 1;
@@ -361,6 +374,7 @@ body {
   outline: none;
   font-size: 1.05rem;
   transition: all 0.3s;
+  min-width: 0; /* Prevents flex overflow */
 }
 #user-input:focus {
   border-color: var(--primary-color);
@@ -380,6 +394,7 @@ body {
   align-items: center;
   transition: transform 0.2s;
   box-shadow: 0 8px 20px rgba(216, 27, 96, 0.25);
+  flex-shrink: 0;
 }
 #send-btn:hover {
   transform: scale(1.05);
@@ -406,13 +421,18 @@ body {
   font-weight: 600;
 }
 
+/* Make markdown tables horizontally scrollable on mobile */
+.bot-message {
+  overflow-x: auto;
+}
+
 /* =========================================
    5. ADMIN DASHBOARD
    ========================================= */
 .admin-layout {
   height: 100vh;
   width: 100vw;
-  padding: 50px;
+  padding: 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -425,6 +445,8 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
+  gap: 15px;
+  flex-wrap: wrap;
 }
 .btn-return {
   background: rgba(255, 255, 255, 0.1);
@@ -435,6 +457,7 @@ body {
   cursor: pointer;
   transition: 0.3s;
   font-weight: bold;
+  white-space: nowrap;
 }
 .btn-return:hover {
   background: var(--primary-color);
@@ -449,16 +472,18 @@ body {
 .add-flex {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 15px;
   margin-top: 20px;
 }
 .add-flex input {
-  flex: 1 1 250px;
+  flex: 1 1 200px;
   padding: 15px;
   border-radius: 8px;
   border: 1px solid var(--glass-border);
   background: rgba(0, 0, 0, 0.3);
   color: white;
+  font-size: 1rem;
+  min-width: 0;
 }
 .action-btn {
   background: #27c93f;
@@ -468,11 +493,12 @@ body {
   border-radius: 8px;
   cursor: pointer;
   font-weight: bold;
+  white-space: nowrap;
 }
 
 .grid-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 25px;
   width: 100%;
   max-width: 1400px;
@@ -491,6 +517,7 @@ body {
 .inventory-card h3 {
   color: var(--primary-color);
   font-size: 1.3rem;
+  word-break: break-word;
 }
 .stock-badge {
   background: rgba(39, 201, 63, 0.2);
@@ -513,6 +540,7 @@ body {
   color: white;
   border-radius: 6px;
   text-align: center;
+  font-size: 1rem;
 }
 
 /* =========================================
@@ -710,19 +738,12 @@ body {
     width: 100%;
 }
 
-/* On smaller screens, stack the analytics vertically */
-@media (max-width: 1000px) {
-  .analytics-container {
-    grid-template-columns: 1fr;
-  }
-}
-
 
 /* Chrome Password Warning Fix */
 .masked-password { -webkit-text-security: disc; }
 
 /* Grouped Header Actions (Desktop) */
-.header-actions { display: flex; gap: 12px; align-items: center; }
+.header-actions { display: flex; gap: 12px; align-items: center; flex-shrink: 0; }
 
 .nav-btn {
     display: flex;
@@ -773,6 +794,7 @@ body {
     align-items: center;
     justify-content: center;
     margin-left: 10px;
+    flex-shrink: 0;
 }
 
 .btn-delete:hover {
@@ -793,9 +815,6 @@ body {
 
 
 
-
-
-
 /* =========================================
    9. MOBILE RESPONSIVENESS (MEDIA QUERIES)
    ========================================= */
@@ -805,26 +824,39 @@ body {
 
 @media (max-width: 900px) {
     .mobile-only {
-        display: block;
+        display: flex;
         font-size: 1.4rem;
         padding: 5px;
         margin-right: 5px;
         border: none;
         background: transparent;
         color: var(--text-main);
+        align-items: center;
+        justify-content: center;
     }
 
     /* Shrink the Login Box */
-    .auth-box { width: 90%; padding: 30px 20px; }
+    .auth-box { 
+        width: 90%; 
+        max-width: 400px;
+        padding: 30px 20px; 
+    }
+
+    /* Intro text scales down */
+    .typewriter-text {
+        font-size: 1.5rem;
+        min-height: 200px;
+    }
 
     /* Fix Chat Layout */
-    .chat-layout { padding: 10px; gap: 0; }
+    .chat-layout { padding: 0; gap: 0; }
 
     /* The Sliding Sidebar Magic */
     .sidebar {
         position: fixed;
         left: -100%; /* Hidden off-screen by default */
         top: 0;
+        width: 280px;
         height: 100vh;
         z-index: 1000;
         background: rgba(11, 9, 20, 0.95);
@@ -833,10 +865,18 @@ body {
         transition: left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1);
         box-shadow: 10px 0 30px rgba(0,0,0,0.5);
         padding-top: 50px; /* Leave room for the close button */
+        border-radius: 0;
     }
 
     /* When toggled via JS, slide it in */
     .sidebar.show-sidebar { left: 0; }
+
+    /* Chat container takes full width on mobile */
+    .chat-container {
+        height: 100vh;
+        border-radius: 0;
+        border: none;
+    }
 
     /* --- UNCLUTTERING THE HEADER --- */
     .chat-header {
@@ -848,19 +888,21 @@ body {
         width: 38px; height: 38px; font-size: 1.1rem;
     }
 
+    .avatar svg {
+        width: 35px;
+        height: 35px;
+    }
+
     .chat-header h2 { font-size: 1rem; }
     .chat-header .status { font-size: 0.8rem; }
     
-    /* Hide the text, keep the emojis */
-    .action-text { display: none; }
-    
-   /* Hide the text, keep the SVGs */
+    /* Hide the text, keep the SVGs */
     .action-text { display: none; }
     
     /* Make the action buttons tiny circles on mobile */
     .admin-link, .logout-btn {
-        width: 42px;
-        height: 42px;
+        width: 40px;
+        height: 40px;
         padding: 0; /* Remove text padding */
         border-radius: 50%;
         display: flex;
@@ -873,13 +915,29 @@ body {
         margin: 0;
     }
 
-    /* --- FIXING THE INPUT AREA --- */
-    .chat-box { padding: 15px; }
-    .message { max-width: 90%; font-size: 0.95rem; padding: 12px 15px; }
+    /* --- FIXING THE CHAT AREA --- */
+    .chat-box { 
+        padding: 15px; 
+        gap: 15px;
+    }
+    .message { 
+        max-width: 88%; 
+        font-size: 0.95rem; 
+        padding: 12px 15px; 
+    }
+
+    /* Markdown table mobile fix */
+    .bot-message table {
+        font-size: 0.8rem;
+    }
+    .bot-message th,
+    .bot-message td {
+        padding: 8px 10px;
+    }
 
     /* Keep it in a row, just slightly tighter padding */
     .input-area {
-        padding: 15px;
+        padding: 12px 15px;
         flex-direction: row; 
         gap: 10px;
     }
@@ -898,8 +956,180 @@ body {
         flex-shrink: 0; /* Prevents the text input from squishing it */
     }
 
-    /* Admin View Fixes */
-    .admin-layout { padding: 20px; }
-    .add-flex input { flex: 1 1 100%; }
-    .nav-header h2 { font-size: 1.2rem; }
+    /* =========================================
+       ADMIN VIEW MOBILE FIXES
+       ========================================= */
+    /* Let admin view scroll properly */
+    #admin-view.active {
+        display: block;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .admin-layout { 
+        padding: 20px 15px;
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .nav-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .nav-header h2 { 
+        font-size: 1.1rem;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .btn-return {
+        padding: 10px 18px;
+        font-size: 0.85rem;
+    }
+
+    /* Analytics grid stacks vertically */
+    .analytics-container {
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    .chart-card {
+        grid-column: 1 / -1; /* Chart spans full width */
+    }
+
+    .stats-card {
+        padding: 20px;
+    }
+
+    .stats-card h2 {
+        font-size: 2rem;
+    }
+
+    .stats-card h3 {
+        font-size: 0.9rem;
+    }
+
+    /* Add product panel */
+    .add-product-panel {
+        padding: 20px;
+    }
+
+    .add-product-panel h3 {
+        font-size: 1.1rem;
+    }
+
+    .add-flex {
+        gap: 12px;
+    }
+
+    .add-flex input {
+        flex: 1 1 100%;
+        padding: 12px;
+    }
+
+    .action-btn {
+        width: 100%;
+        padding: 14px;
+    }
+
+    /* Inventory grid */
+    .grid-container {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .inventory-card {
+        padding: 20px;
+    }
+}
+
+/* Extra small phones */
+@media (max-width: 480px) {
+    .auth-box {
+        padding: 25px 15px;
+    }
+
+    .auth-box input {
+        padding: 12px;
+    }
+
+    .auth-box button {
+        padding: 12px;
+        font-size: 0.95rem;
+    }
+
+    .typewriter-text {
+        font-size: 1.2rem;
+        min-height: 180px;
+    }
+
+    .chat-header {
+        padding: 10px 12px;
+    }
+
+    .avatar {
+        width: 32px;
+        height: 32px;
+    }
+
+    .avatar svg {
+        width: 28px;
+        height: 28px;
+    }
+
+    .admin-link, .logout-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .admin-link svg, .logout-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .message {
+        max-width: 92%;
+        font-size: 0.9rem;
+        padding: 10px 12px;
+    }
+
+    #user-input {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+
+    #send-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+
+    .input-area {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    /* Analytics on tiny screens */
+    .analytics-container {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-card h2 {
+        font-size: 1.8rem;
+    }
+
+    .nav-header h2 {
+        font-size: 1rem;
+    }
+
+    .btn-return {
+        padding: 8px 14px;
+        font-size: 0.8rem;
+    }
 }

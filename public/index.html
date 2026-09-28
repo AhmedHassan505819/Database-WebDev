@@ -31,11 +31,18 @@
             </svg>
             <span class="logo-text">ServeBot AI</span>
         </div>
+        <button class="hamburger-btn" aria-label="Toggle Navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <div class="nav-overlay"></div>
         
         <div class="nav-links">
-            <a href="#about">About</a>
-            <a href="#capabilities">Features</a>
-            <a href="/chat" class="btn btn-glass">Login</a>
+            <a href="#about" class="nav-item">About</a>
+            <a href="#capabilities" class="nav-item">Features</a>
+            <a href="/chat" class="btn btn-glass nav-item">Login</a>
         </div>
     </nav>
 
@@ -293,7 +300,6 @@ const navbar = document.querySelector('nav');
 
 // Listen for any scrolling on the page
 window.addEventListener('scroll', () => {
-  
   // Check how far down the page the user has scrolled
   if (window.scrollY > 50) {
     // If they scrolled down 50px or more, add the white background
@@ -302,9 +308,31 @@ window.addEventListener('scroll', () => {
     // If they are at the top, remove it to make it transparent again
     navbar.classList.remove('scrolled');
   }
-  
 });
 
+// Mobile Navigation Toggle Logic
+const hamburger = document.querySelector('.hamburger-btn');
+const navLinks = document.querySelector('.nav-links');
+const overlay = document.querySelector('.nav-overlay');
+const navItems = document.querySelectorAll('.nav-item');
+
+function toggleMenu() {
+    navLinks.classList.toggle('open');
+    overlay.classList.toggle('active');
+}
+
+if (hamburger && navLinks && overlay) {
+    hamburger.addEventListener('click', toggleMenu);
+    overlay.addEventListener('click', toggleMenu);
+
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            if (navLinks.classList.contains('open')) {
+                toggleMenu();
+            }
+        });
+    });
+}
     </script>
   
 
