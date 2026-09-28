@@ -30,7 +30,7 @@ chatSessionSchema.pre('save', function() {
     this.updatedAt = Date.now();
 });
 
-// 🔥 ADB FEATURE 2: Data Lifecycle Management (TTL Index)
+//  ADB FEATURE 2: Data Lifecycle Management (TTL Index)
 // MongoDB runs a background thread that automatically deletes this document
 // 604,800 seconds (7 days) after its last 'updatedAt' timestamp.
 chatSessionSchema.index({ updatedAt: 1 }, { expireAfterSeconds: 604800 });
