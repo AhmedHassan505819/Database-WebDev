@@ -44,7 +44,10 @@ app.post('/api/register', async (req, res) => {
         await newUser.save();
 
         res.json({ message: "Success", user: { username: newUser.username, role: newUser.role } });
-    } catch (error) { res.status(500).json({ error: "Registration failed." }); }
+    } catch (error) { 
+        console.error("Registration Error:", error);
+        res.status(500).json({ error: "Registration failed: " + error.message }); 
+    }
 });
 
 app.post('/api/login', async (req, res) => {
@@ -53,7 +56,10 @@ app.post('/api/login', async (req, res) => {
         const user = await User.findOne({ username });
         if (!user || user.password !== password) return res.status(401).json({ error: "Invalid credentials!" });
         res.json({ message: "Success", user: { username: user.username, role: user.role } });
-    } catch (error) { res.status(500).json({ error: "Login failed." }); }
+    } catch (error) { 
+        console.error("Login Error:", error);
+        res.status(500).json({ error: "Login failed: " + error.message }); 
+    }
 });
 
 app.get('/api/inventory', async (req, res) => {
