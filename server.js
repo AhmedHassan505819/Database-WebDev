@@ -18,10 +18,27 @@ app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Database Connection
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('✅ Connected to MongoDB!'))
-    .catch(err => console.error('❌ MongoDB connection error:', err));
+// Database Connection for Serverless
+let isConnected = false;
+const connectDB = async () => {
+    if (isConnected) return;
+    try {
+        const db = await mongoose.connect(process.env.MONGODB_URI);
+        isConnected = db.connections[0].readyState;
+        console.log('✅ Connected to MongoDB!');
+    } catch (err) {
+        console.error('❌ MongoDB connection error:', err);
+    }
+};
+
+// Middleware: Ensure DB is connected before handling any API requests
+app.use(async (req, res, next) => {
+    // Only connect if the request is for an API route
+    if (req.path.startsWith('/api')) {
+        await connectDB();
+    }
+    next();
+});
 
 // ==========================================
 // FRONTEND ROUTES
